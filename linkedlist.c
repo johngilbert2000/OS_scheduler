@@ -64,6 +64,7 @@ void remove_node(node *old_node){
     if (old_node->next != NULL) old_node->next->prev = old_node->prev;
     old_node->prev = NULL;
     old_node->next = NULL;
+    free(old_node);
 }
 
 node *get_head(node *any_node){
