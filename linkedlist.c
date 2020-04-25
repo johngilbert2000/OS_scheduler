@@ -13,7 +13,8 @@
 // typedef struct linked node;
 
 node *create_node(int val){
-    node *res = malloc(sizeof(node));
+    // node *res = malloc(sizeof(node));
+    node *res;
     res->val = val;
     res->next = NULL;
     res->prev = NULL;
@@ -64,7 +65,7 @@ void remove_node(node *old_node){
     if (old_node->next != NULL) old_node->next->prev = old_node->prev;
     old_node->prev = NULL;
     old_node->next = NULL;
-    free(old_node);
+    // free(old_node);
 }
 
 node *get_head(node *any_node){
