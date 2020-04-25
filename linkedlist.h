@@ -1,5 +1,7 @@
+#ifndef LINKEDLIST_H
+#define LINKEDLIST_H
 // create_node, append_value, lookup, remove_head, remove_tail, remove_node
-#include "main.h"
+#include "definitions.h"
 
 extern node *create_node(int val);
 extern void insert_node(node *previous_node, node *new_node);
@@ -19,3 +21,4 @@ extern void move_ahead(node **head, node *any_node);
 extern void shift_left(node **head, node **tail);
 extern void shift_right(node **head, node **tail);
 extern void swap_nodes(node **node1, node **node2);
+#endif

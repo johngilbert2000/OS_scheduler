@@ -3,12 +3,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include <time.h>
 #include "useful_funcs.h"
 #include "linkedlist.h"
-#include "scheduler.c"
-
-#define DEBUG 1
-#define IO 1
+#include "scheduler.h"
+#include "IO.h"
 
 // Note: RR round is 500 time units
 
@@ -16,7 +15,7 @@
 // or when process_elapsed_time % 500 == 0
 // (current time is the number of time steps elapsed since main starts)
 
-enum policy_type {FIFO, RR, SJF, PSJF};
+// enum policy_type {FIFO, RR, SJF, PSJF};
 
 typedef unsigned int uint;
 
@@ -37,31 +36,12 @@ double get_time() {
 
 int main() {
 
-    char S[4];
     enum policy_type policy; 
 
     // -------------
     // Get Policy
     // -------------
-    if (IO) printf("Policy: ");
-    scanf("%s", S);
-
-    if (strncmp(S,"FIFO", 4) == 0){
-        policy = FIFO;
-    }
-    else if (strncmp(S, "RR", 4) ==0){
-        policy = RR;
-    }
-    else if (strncmp(S, "SJF", 4) == 0){
-        policy = SJF;
-    }
-    else if (strncmp(S, "PSJF",4) == 0){
-        policy = PSJF;
-    }
-    else{
-        printf("ERROR: Incorrect Policy - %s", S);
-        return 1;
-    }
+    policy = get_policy();
 
     // N
     uint N;
@@ -143,7 +123,7 @@ int main() {
         // Select Job
         // ------------------
         if (qsize > 0) {
-            id = select_job(&head, &tail, policy, current_time, &remaining_times, running);
+            id = select_job(&head, &tail, policy, current_time, remaining_times, running);
 
             if (remaining_times[id] == execution_times[id]){
                 start_times[id] = get_time(); // process start time

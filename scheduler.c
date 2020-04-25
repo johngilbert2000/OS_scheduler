@@ -1,14 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include "useful_funcs.h"
 #include "linkedlist.h"
+#include "definitions.h"
 
-typedef unsigned int uint;
-enum policy_type {FIFO, RR, SJF, PSJF};
+// typedef unsigned int uint;
+// enum policy_type {FIFO, RR, SJF, PSJF};
 
-uint select_job(node **head, node **tail, enum policy_type policy, uint elapsed_time, uint *remain_times[], bool running){
+uint select_job(node **head, node **tail, enum policy_type policy, uint elapsed_time, uint remain_times[], bool running){
     // Selects job based on policy;
 
     // head: the head node of the ready queue (linked list)
@@ -40,13 +42,13 @@ uint select_job(node **head, node **tail, enum policy_type policy, uint elapsed_
             uint id;
             uint min_time;
             // id = tmp->val;
-            min_time = *remain_times[tmp->val];
+            min_time = remain_times[tmp->val];
 
             while (tmp != NULL){
-                if (*remain_times[tmp->val] < min_time) {
+                if (remain_times[tmp->val] < min_time) {
                     // id = tmp->val;
                     min_node = tmp;
-                    min_time = *remain_times[tmp->val];
+                    min_time = remain_times[tmp->val];
                 }
                 tmp = tmp->next;
             }
@@ -64,12 +66,12 @@ uint select_job(node **head, node **tail, enum policy_type policy, uint elapsed_
         tmp = *head;
         uint id;
         uint min_time;
-        min_time = *remain_times[tmp->val];
+        min_time = remain_times[tmp->val];
 
         while (tmp != NULL){
-            if (*remain_times[tmp->val] < min_time) {
+            if (remain_times[tmp->val] < min_time) {
                 min_node = tmp;
-                min_time = *remain_times[tmp->val];
+                min_time = remain_times[tmp->val];
             }
             tmp = tmp->next;
         }

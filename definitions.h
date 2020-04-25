@@ -1,3 +1,8 @@
+#ifndef DEFINITIONS_H
+#define DEFINITIONS_H
+
+#define DEBUG 1
+#define IO 1
 
 typedef unsigned int uint;
 
@@ -10,3 +15,5 @@ struct linked {
 };
 
 typedef struct linked node;
+
+#endif

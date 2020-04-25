@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
-#include "main.h"
+#include "definitions.h"
 
 // -----------------------------------------------------------------
 // Useful Functions
