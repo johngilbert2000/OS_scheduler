@@ -8,6 +8,9 @@
 #include "linkedlist.h"
 #include "scheduler.h"
 #include "IO.h"
+#include "definitions.h"
+
+// #include <linux/ktime.h> // for getnstimeofday()
 
 // Note: RR round is 500 time units
 
@@ -15,9 +18,6 @@
 // or when process_elapsed_time % 500 == 0
 // (current time is the number of time steps elapsed since main starts)
 
-// enum policy_type {FIFO, RR, SJF, PSJF};
-
-typedef unsigned int uint;
 
 // QUESTION: do I use fork to call time_unit(), with time_unit in a separate file?
 void time_unit(){
@@ -29,9 +29,11 @@ void time_unit(){
 // the head of the linked list will always be the current job
 // (some policies will move new jobs to the head of the list when selecting them)
 
-double get_time() {
-
-    return 2.0;
+long long get_time(){
+    // gets the clock time in nanoseconds (from time.h)
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME, &t);
+    return (t.tv_sec*(int)1e9 + t.tv_nsec);
 }
 
 int main() {
@@ -55,8 +57,8 @@ int main() {
     uint remaining_times[N];
     
     // output stuff, may be unnecessary
-    double start_times[N];
-    double end_times[N];
+    long long start_times[N];
+    long long end_times[N];
     uint PIDs[N];
     
     // N R T
