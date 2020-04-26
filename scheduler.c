@@ -39,7 +39,7 @@ uint select_job(node **head, node **tail, enum policy_type policy, uint elapsed_
             node *min_node;
             
             tmp = *head;
-            uint id;
+            // uint id;
             uint min_time;
             // id = tmp->val;
             min_time = remain_times[tmp->val];
@@ -64,7 +64,6 @@ uint select_job(node **head, node **tail, enum policy_type policy, uint elapsed_
         node *min_node;
         
         tmp = *head;
-        uint id;
         uint min_time;
         min_time = remain_times[tmp->val];
 

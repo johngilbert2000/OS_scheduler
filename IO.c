@@ -24,8 +24,8 @@ enum policy_type get_policy() {
         policy = PSJF;
     }
     else{
-        printf("ERROR: Incorrect Policy - %s", S);
-        return 1;
+        printf("ERROR: Incorrect Policy - %s. Default FIFO used.\n", S);
+        return FIFO;
     }
     return policy;
 }
