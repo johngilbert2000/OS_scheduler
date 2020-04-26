@@ -6,6 +6,8 @@
 
 typedef unsigned int uint;
 
+typedef int pid;
+
 enum policy_type {FIFO, RR, SJF, PSJF};
 
 struct linked {

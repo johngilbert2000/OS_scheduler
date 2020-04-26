@@ -12,13 +12,6 @@
 
 // #include <linux/ktime.h> // for getnstimeofday()
 
-// Note: RR round is 500 time units
-
-// QUESTION: does RR alternate when current_time % 500 == 0, 
-// or when process_elapsed_time % 500 == 0
-// (current time is the number of time steps elapsed since main starts)
-
-
 // QUESTION: do I use fork to call time_unit(), with time_unit in a separate file?
 void time_unit(){
     volatile unsigned long i; for(i=0;i<1000000UL;i++); 
@@ -59,7 +52,7 @@ int main() {
     // output stuff, may be unnecessary
     long long start_times[N];
     long long end_times[N];
-    uint PIDs[N];
+    pid PIDs[N];
     
     // N R T
     for (int i = 0; i < N; i++) {
@@ -69,6 +62,7 @@ int main() {
         scanf("%u", &execution_times[i]);
 
         remaining_times[i] = execution_times[i];
+        PIDs[i] = -1;
     }
 
 
@@ -85,6 +79,7 @@ int main() {
 
     uint current_time = 0;
 
+    uint prev_id; // previous selected id
     uint id = 0; // current selected id
     int qsize = 0; // size of ready_queue (linked list)
 
@@ -109,13 +104,11 @@ int main() {
         // ------------------
         // Update Ready Queue
         // ------------------
-
         // Check if next job arrived, and if so, update the ready queue
         while ((arrival_itr < N) && (ready_times[next_arrival] <= current_time)) {
             // add job to ready_queue
             append_value(&tail, next_arrival);
             qsize += 1;
-
             // get next arrival
             arrival_itr += 1;
             next_arrival = sorted_ids[arrival_itr];
@@ -125,8 +118,8 @@ int main() {
         // Select Job
         // ------------------
         if (qsize > 0) {
+            prev_id = id;
             id = select_job(&head, &tail, policy, current_time, remaining_times, running);
-
             if (remaining_times[id] == execution_times[id]){
                 start_times[id] = get_time(); // process start time
             }
@@ -135,6 +128,23 @@ int main() {
         // ------------------
         // Run Job
         // ------------------
+
+        if (running == false) {
+            uint *rtime_ptr = NULL; 
+            *rtime_ptr = &remaining_times[id]; 
+            PIDs[id] = start_process(&rtime_ptr);
+        }
+        else if (id != prev_id) {
+
+        }
+
+
+        // if (running[id] == true) {
+        //     continue_process(PID[id]);
+        // }
+        // else {
+        //     PID = startprocess();
+        // }
 
         time_unit();
         running = true;
