@@ -13,4 +13,5 @@ sched: IO.o scheduler.o linkedlist.o useful_funcs.o main.c
 clean:
 	rm sched
 	rm -r *.dSYM/
+	rm a.out
 
