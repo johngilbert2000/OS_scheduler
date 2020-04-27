@@ -35,12 +35,25 @@ void time_unit() {
   }
 }
 
+// enum job_status {UNAVAILABLE, STARTED, FINISHED};
+
+// struct job_data {
+//   pid PID;
+//   uint id;
+//   char *name;
+//   uint ready_time;
+//   uint execution_time;
+//   enum job_status;
+// };
+
+// typedef struct job_data job;
+
 int main(int argc, char *argv[]){
   pid_t PID; // process id
-  int pipe_rw[2]; // pipe[0]: pipe read, pipe[1]: pipe write
+  int fd[2]; // fd[0]: pipe read file descriptor, fd[1]: pipe write
   int X[MAXN], id, status, pipe_return_value;  
-  fcntl(pipe_rw[0], F_SETFL, fcntl(pipe_rw[0], F_GETFL) | O_NONBLOCK);
-  fcntl(pipe_rw[1], F_SETFL, fcntl(pipe_rw[0], F_GETFL) | O_NONBLOCK);
+  fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+  fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
   // if (fcntl(pipe_rw[0], F_SETFL, O_NONBLOCK) < 0) { perror("nonblocking pipe error"); exit(1)};
   // if (fcntl(pipe_rw[1], F_SETFL, O_NONBLOCK) < 0) { perror("nonblocking pipe error"); exit(1)};
 
@@ -51,24 +64,24 @@ int main(int argc, char *argv[]){
   for (int i = 0; i < MAXN; i++) { X[i] = 0; }
   printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
 
-  pipe_return_value = pipe(pipe_rw);
+  pipe_return_value = pipe(fd);
   if (pipe_return_value == -1) { perror("pipe error"); exit(1); }
 
   PID = fork();
   if (PID == 0) { // CHILD
     X[id] = STARTED; // some value to indicate process started
     printf("X[%d]: %d  (child - process %d)\n", id, X[id], getpid());
-    write(pipe_rw[1], (X+id), sizeof(int));
+    write(fd[1], (X+id), sizeof(int));
 
     for (int i = 0; i<5; i++) time_unit();
     X[id] = FINISHED; // some value to indicate process finished
-    write(pipe_rw[1], (X+id), sizeof(int));
+    write(fd[1], (X+id), sizeof(int));
     printf("X[%d]: %d  (child - process %d)\n", id, X[id], getpid());
     printf("[child: ending process %d]\n", getpid());
     exit(EXIT_SUCCESS);
   }
   else { // PARENT
-    read(pipe_rw[0], (X+id), sizeof(int));
+    read(fd[0], (X+id), sizeof(int));
     printf("X[%d]: %d  (parent - process %d)\n", id, X[id], getpid());
   }
 
@@ -79,7 +92,7 @@ int main(int argc, char *argv[]){
     if (status > 0) waitpid(PID, &status, WNOHANG);
 
     if ((status == 0) && (X[id] != FINISHED)) {
-      read(pipe_rw[0], (X+id), sizeof(int));
+      read(fd[0], (X+id), sizeof(int));
       printf("[main: child process %d has ended]\n", PID);
       printf("status: %d (child finished)\n", status);
     } 
