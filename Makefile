@@ -13,6 +13,11 @@ sched: IO.o scheduler.o linkedlist.o useful_funcs.o main.c
 run:
 	./sched
 
+scratchwork:
+	$(CC) scratchwork.c
+	./a.out
+	rm a.out
+
 clean:
 	rm -r *.dSYM/
 	rm sched

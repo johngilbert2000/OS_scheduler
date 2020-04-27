@@ -10,6 +10,14 @@
 #include "IO.h"
 #include "definitions.h"
 
+// TODO:
+// - change total_remaining to total_remaining_procs, initialized to N
+// - decrement total_remaining_procs every time clean_list(head) is called
+// - implement clean_list(node **head), which cycles through the ready_queue, 
+// checks to see if process finished, and if so, remove from list
+// 
+
+
 // #include <linux/ktime.h> // for getnstimeofday()
 
 // QUESTION: do I use fork to call time_unit(), with time_unit in a separate file?
