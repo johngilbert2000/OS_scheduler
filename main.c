@@ -14,8 +14,24 @@
 // - change total_remaining to total_remaining_procs, initialized to N
 // - decrement total_remaining_procs every time clean_list(head) is called
 // - implement clean_list(node **head), which cycles through the ready_queue, 
-// checks to see if process finished, and if so, remove from list
-// 
+// checks to see if process finished, and if so, remove from list;
+// cleanlist(**head) stops when it hits a process that isn't finished
+// cleanlist(**head) decrements total_remaining_procs AND qsize
+
+// - split PSJF and SJF ready queue into 4 ready queues, based on execution times
+// i.e., ids with smaller execution times get added to ready_queue[0]'s linked list
+// and ids with largest execution times get added to ready_queue[3]'s linked list
+// when selecting jobs, if ready_queue[0] is empty, check ready_queue[1] for a linked list
+// etc.; that way, the scheduler doesn't have to search through all available jobs
+// to find the one with the minimum execution time
+
+// - timer syscall for dmesg
+// - printk syscall for dmesg
+
+// NOT URGENT TODO:
+// - Is it possible to move get policy stuff all into IO, 
+// and store execution_times[] and ready_times[] and names[] in a struct?
+// N will depend on user input...
 
 
 // #include <linux/ktime.h> // for getnstimeofday()
