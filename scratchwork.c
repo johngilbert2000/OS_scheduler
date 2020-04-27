@@ -17,6 +17,11 @@
 #include <fcntl.h>
 // #include <pthread.h> // for pipes?
 
+// note:
+// - kill() with SIGSTOP --> pause process
+// - kill() with SIGCONT --> resume process
+
+
 #define MAXN 20
 #define STARTED 1
 #define FINISHED 2

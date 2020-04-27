@@ -10,6 +10,19 @@
 #include "IO.h"
 #include "definitions.h"
 
+
+// TODO (short version)
+// - cleanlist(), total_remaining_procs, qsize
+// - start_process()
+// - change_process()
+// - change_n_start()
+// - PSJF, SJF: use 4 ready_queues based on execution time
+// - syscall timer (add to processes)
+// - printk syscall for dmesg
+// - dmesg implementation
+// - move header files into folder
+
+
 // TODO:
 // - change total_remaining to total_remaining_procs, initialized to N
 // - decrement total_remaining_procs every time clean_list(head) is called
@@ -17,6 +30,9 @@
 // checks to see if process finished, and if so, remove from list;
 // cleanlist(**head) stops when it hits a process that isn't finished
 // cleanlist(**head) decrements total_remaining_procs AND qsize
+// - implement start_process with fork(), getpid(), waitpid(), and pipe()
+// - implement change_process
+// - implement change_n_start_process
 
 // - split PSJF and SJF ready queue into 4 ready queues, based on execution times
 // i.e., ids with smaller execution times get added to ready_queue[0]'s linked list
