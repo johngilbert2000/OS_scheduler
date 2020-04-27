@@ -18,4 +18,11 @@ struct linked {
 
 typedef struct linked node;
 
+struct sched_param {
+    int sched_priority;
+};
+
+enum job_status {UNAVAILABLE, STARTED, FINISHED};
+typedef enum job_status jobstat;
+
 #endif
