@@ -18,6 +18,9 @@
 // #include <pthread.h> // for pipes?
 
 #define MAXN 20
+#define STARTED 1
+#define FINISHED 2
+
 
 void time_unit() {
   for (unsigned int j = 0; j < 1000; j++) {
@@ -66,19 +69,19 @@ int main(int argc, char *argv[]){
   time_unit();
   time_unit();
   time_unit();
-  if (X[id] != 2) read(pipe_rw[0], (X+id), sizeof(int));
+  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
   printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
 
   time_unit();
-  if (X[id] != 2) read(pipe_rw[0], (X+id), sizeof(int));
+  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
   printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
 
   time_unit();
-  if (X[id] != 2) read(pipe_rw[0], (X+id), sizeof(int));
+  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
   printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
 
   time_unit();
-  if (X[id] != 2) read(pipe_rw[0], (X+id), sizeof(int));
+  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
   printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
 
   waitpid(PID, &status, 0); // don't end main until child ends
