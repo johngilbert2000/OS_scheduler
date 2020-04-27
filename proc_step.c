@@ -13,8 +13,9 @@
 
 // TODO:
 // - Test swap_priorities
-// - sched_setscheduler / sched_yield
-// dmesg_info, timer
+// - use nice() values instead of sched_setscheduler in swap_priorities
+// - change get_time() into a syscall
+// - change make_dmesg() into a syscall
 
 // --------------
 // To do in main:
@@ -41,7 +42,7 @@
 
 // typedef struct job_data job;
 
-void to_dmesg(pid PID, long long start_time, long long stop_time) {
+void make_dmesg(pid PID, long long start_time, long long stop_time) {
     printf("[Project 1] %d %llu %llu", PID, start_time, stop_time);
     // syscall(PRINTK, PID, start_time, stop_time);
     return; 
@@ -59,7 +60,7 @@ void time_unit(){
 }
 
 void swap_priorities(pid oldPID, pid newPID) {
-    // TODO: use nice() values instead
+    // TODO: use nice() values instead?
     struct sched_param old_param, new_param;
 
     old_param.sched_priority = LOW_PRIORITY;
@@ -76,9 +77,14 @@ void init_priority(pid PID) {
 
 pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
     // Create new process with fork(); (used in process_control)
+ 
+    // stat: the status of the selected job
+    // exec_time: execution time of selected job
+    // pipefd: file descriptor for piping selected job status from child process
     pid PID;
     jobstat localstatus;
     localstatus = *stat;
+    long long start_time, stop_time;
 
     PID = fork();
     if (PID == 0) { // CHILD PROCESS
@@ -86,6 +92,7 @@ pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
         PID = getpid();
         localstatus = STARTED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
+        start_time = get_time();
 
         // Run process
         for (int i = 0; i < exec_time; i++) {
@@ -95,6 +102,8 @@ pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
         // Pass finished status into pipe and exit
         localstatus = FINISHED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
+        start_time = get_time();
+        make_dmesg(PID, start_time, stop_time);
         exit(EXIT_SUCCESS);
     }
     else { // PARENT PROCESS
