@@ -129,14 +129,14 @@ int main() {
         // Run Job
         // ------------------
 
-        if (running == false) {
-            uint *rtime_ptr = NULL; 
-            *rtime_ptr = &remaining_times[id]; 
-            PIDs[id] = start_process(&rtime_ptr);
-        }
-        else if (id != prev_id) {
+        // if (running == false) {
+        //     uint *rtime_ptr = NULL; 
+        //     *rtime_ptr = &remaining_times[id]; 
+        //     PIDs[id] = start_process(&rtime_ptr);
+        // }
+        // else if (id != prev_id) {
 
-        }
+        // }
 
 
         // if (running[id] == true) {

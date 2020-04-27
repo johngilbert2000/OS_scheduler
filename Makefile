@@ -9,9 +9,10 @@ all: sched
 sched: IO.o scheduler.o linkedlist.o useful_funcs.o main.c
 	$(CC) $(CFLAGS) -o $@ $^
 	rm *.o
+	
+run:
+	./sched
 
 clean:
-	rm sched
 	rm -r *.dSYM/
-	rm a.out
-
+	rm sched
