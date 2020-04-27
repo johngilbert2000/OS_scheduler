@@ -4,11 +4,15 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <time.h>
+#include <sched.h>
 #include <fcntl.h> // for nonblocking file descriptor pipes
 #include "definitions.h"
 
+#define LOW_PRIORITY 10
+#define HIGH_PRIORITY 90
 
 // TODO:
+// - sched_setscheduler / sched_yield
 // dmesg_info, timer
 
 enum job_status {UNAVAILABLE, STARTED, FINISHED};
@@ -48,6 +52,33 @@ void time_unit(){
 // if (pipe_ret == -1) { perror("pipe error"); exit(1); }
 // // --------------
 
+struct sched_param {
+    int sched_priority;
+};
+
+void swap_priorities(pid oldPID, pid newPID) {
+   struct sched_param old_param, new_param;
+    // int old_priority, new_priority, main_priority;
+    int high_priority, low_priority;
+
+    // old_priority = getpriority(PRIO_PROCESS, oldPID);
+    // new_priority = getpriority(PRIO_PROCESS, newPID);
+    // main_priority = getpriority(PRIO_PROCESS, 0);
+    // new_priority = main_priority + 1;
+
+    old_param.sched_priority = LOW_PRIORITY;
+    new_param.sched_priority = HIGH_PRIORITY;
+
+    sched_setscheduler(oldPID, SCHED_FIFO, &old_param);
+    sched_setscheduler(newPID, SCHED_FIFO, &new_param);
+}
+
+void init_priority(pid PID) {
+    struct sched_param param;
+    param.sched_priority = LOW_PRIORITY;
+    sched_setscheduler(PID, SCHED_FIFO, &param);
+}
+
 pid change_process(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat pipefd[2], bool running) {
     // stat: the status of the selected job
     // PID: PID of selected job, if it exists
@@ -57,6 +88,7 @@ pid change_process(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat 
     // running: true if previous job is running, else false
     jobstat localstatus;
     localstatus = *stat;
+    
 
     if (localstatus == UNAVAILABLE) {
         // Create new process
@@ -84,8 +116,14 @@ pid change_process(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat 
         }
     }
     
-    if (running == true) sched_yield(prevPID);
-    sched_setscheduler(PID);
+    // if (running == true) sched_yield(prevPID);
+    // sched_setscheduler(PID, SCHED_FIFO, &param);
+    if (running = true) {
+        swap_priorities(prevPID, PID);
+    }
+    else {
+        init_priority(PID);
+    }
 
    return PID;
 }
