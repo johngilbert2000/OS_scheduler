@@ -51,44 +51,78 @@ int main(int argc, char *argv[]){
 
   PID = fork();
   if (PID == 0) { // CHILD
-    X[id] = 1; // some value to indicate process started
+    X[id] = STARTED; // some value to indicate process started
     printf("X[%d]: %d  (child - process %d)\n", id, X[id], getpid());
     write(pipe_rw[1], (X+id), sizeof(int));
 
     for (int i = 0; i<5; i++) time_unit();
-    X[id] = 2; // some value to indicate process finished
+    X[id] = FINISHED; // some value to indicate process finished
     write(pipe_rw[1], (X+id), sizeof(int));
     printf("X[%d]: %d  (child - process %d)\n", id, X[id], getpid());
-    printf("[child - ending process %d]\n", getpid());
+    printf("[child: ending process %d]\n", getpid());
     exit(EXIT_SUCCESS);
   }
   else { // PARENT
     read(pipe_rw[0], (X+id), sizeof(int));
-    // printf("X[%d]: %d  (parent - process %d)\n", id, X[id], getpid());
+    printf("X[%d]: %d  (parent - process %d)\n", id, X[id], getpid());
   }
-  time_unit();
-  time_unit();
-  time_unit();
-  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
-  printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
 
-  time_unit();
-  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
-  printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+  waitpid(PID, &status, WNOHANG);
+  printf("status: %d (child running)\n", status);
+  for (int i = 0; i < 7; i++) {
+    time_unit();
+    if (status > 0) waitpid(PID, &status, WNOHANG);
 
-  time_unit();
-  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
-  printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
-
-  time_unit();
-  if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
-  printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+    if ((status == 0) && (X[id] != FINISHED)) {
+      read(pipe_rw[0], (X+id), sizeof(int));
+      printf("[main: child process %d has ended]\n", PID);
+      printf("status: %d (child finished)\n", status);
+    } 
+    printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+  }
 
   waitpid(PID, &status, 0); // don't end main until child ends
-  printf("[main - process %d has ended]\n", PID);
   printf("Final X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
   return 0;
 }
+  
+    // if (status == 0) X[id] = FINISHED;
+
+  // waitpid(PID, &status, WNOHANG);
+  // printf("status: %d\n", status);
+  // time_unit();
+  // time_unit();
+  // time_unit();
+  // if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
+  // printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+  // if (status > 0) waitpid(PID, &status, WNOHANG);
+  // if (status == 0) X[id] = 2;
+
+  // time_unit();
+  // // if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
+  // printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+  // if (status > 0) waitpid(PID, &status, WNOHANG);
+  // if (status == 0) X[id] = 2;
+
+  // time_unit();
+  // if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
+  // printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+  // if (status > 0) waitpid(PID, &status, WNOHANG);
+  // if (status == 0) X[id] = 2;
+
+//   time_unit();
+//   // if (X[id] != FINISHED) read(pipe_rw[0], (X+id), sizeof(int));
+//   if (status > 0) waitpid(PID, &status, WNOHANG);
+//   if (status == 0) X[id] = 2;
+
+//   printf("X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+
+//   waitpid(PID, &status, 0); // don't end main until child ends
+//   printf("[main: process %d has ended]\n", PID);
+//   printf("Final X[%d]: %d  (main - process %d)\n", id, X[id], getpid());
+//   printf("status: %d\n", status);
+//   return 0;
+// }
 
 // int not_main(int argc, char*argv[]){
 //   // THIS WORKS!
