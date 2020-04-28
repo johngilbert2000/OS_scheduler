@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
     if (IO) printf("Number processes: ");
     scanf("%u", &N);
 
+    N += 1; // because reasons
+
     int total_remaining;
     total_remaining = N; // number of processes left to finish
 
@@ -70,7 +72,7 @@ int main(int argc, char *argv[]) {
 
     jobstat stats[N];
     // N R T
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N-1; i++) { // because reasons
         if (IO) printf("N R T: ");
         scanf("%s", names[i]); 
         scanf("%u", &ready_times[i]);
@@ -81,6 +83,28 @@ int main(int argc, char *argv[]) {
         elapsed_steps[i] = 0;
         stats[i] = UNAVAILABLE;
     }
+    
+    // because reasons
+    // the last process wasn't getting displayed, so I made an extra process that runs at the end...
+    int maximum = 0;
+    int maximum2 =0;
+    for (int i = 0; i < N-1; i++) {
+        if (ready_times[i] > maximum){
+            maximum = ready_times[i];
+        }
+    }
+    for (int i = 0; i < N-1; i++) {
+        if (execution_times[i] > maximum){
+            maximum2 = ready_times[i];
+        }
+    }
+    strcpy(names[N-1], "");
+    ready_times[N-1] = maximum+10;
+    execution_times[N-1] = maximum2+10;
+    remaining_times[N-1] = maximum2+10;
+    elapsed_steps[N-1] = 0;
+    stats[N-1] = UNAVAILABLE;
+    PIDs[N-1] = -42;
 
     // ------------------
     // Sort Ready Times
@@ -122,7 +146,12 @@ int main(int argc, char *argv[]) {
     tmp2 = 0;
     tmp3 = 0;
     tmp4 = 0;
-    
+
+
+    // for (int i = 0; i < N; i++) {
+    //     printf("%s %d %d\n", names[i], ready_times[i], execution_times[i]);
+    // }
+
     while (finished_jobs < N) {
         // ------------------
         // Update Ready Queue
@@ -131,9 +160,18 @@ int main(int argc, char *argv[]) {
         if (DEBUG) printf("___________ \n");
         if (DEBUG) printf("adding jobs\n");
 
+        // for (int i = 0; i < N; i++) {
+        //     if ((ready_times[i] <= current_step) && (stats[i] == UNAVAILABLE)) {
+        //         printf("Add job: %id\n", id);
+        //         append_value(&tail, next_arrival);
+        //     }
+        // }
 
+        // -----------
+        // Add jobs
+        // -----------
         tmp1 = ready_times[next_arrival];
-        while ((arrival_itr <= N) && (tmp1 <= current_step)) {
+        while ((arrival_itr < N) && (tmp1 <= current_step)) {
             // add job to ready_queue
             printf("Added: %d\n", sorted_ids[arrival_itr]);
             append_value(&tail, next_arrival);
@@ -151,7 +189,7 @@ int main(int argc, char *argv[]) {
             // ------------------
             prev_id = id;
             id = select_job(&head, &tail, policy, current_step, remaining_times, running);
-            
+            printf("id: %d\n", id);
 
             if (DEBUG) printf("running jobs \n");
             // ------------------
@@ -161,6 +199,7 @@ int main(int argc, char *argv[]) {
                 execution_times[id], pipe_fds[id], running);
             running = true;
             time_unit();
+            printf("PIDs[%d]: %d\n", id, PIDs[id]);
 
             if (DEBUG) printf("update params \n");
             // ------------------
@@ -177,19 +216,20 @@ int main(int argc, char *argv[]) {
         }
         current_step += 1;
 
+
         if (DEBUG) printf("sync?\n");
         if (DEBUG) printf("___________ \n");
         // ------------------
         // Sync Steps
         // ------------------
-        if (current_process_step > current_step) {
-            // sync main() steps with process steps
-            current_step = current_process_step;
-        }
+        // if (current_process_step > current_step) {
+        //     // sync main() steps with process steps
+        //     current_step = current_process_step;
+        // }
     }
 
     printf("_____________\n");
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N-1; i++) { // because reasons
         printf("%s", names[i]);
         printf(" %d\n", PIDs[i]);
     }
