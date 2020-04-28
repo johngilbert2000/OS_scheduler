@@ -3,7 +3,7 @@
 
 #define DEBUG 0
 #define IO 1 // Turn this to 1 to display prompts for the user (running without input files)
-#define DIO 1 // another debug io
+#define DIO 0 // another debug io
 #define NOT_LINUX // define this if not using linux
 
 #define LOW_PRIORITY 90
