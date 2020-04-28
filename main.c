@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <time.h>
+#include <unistd.h>
+
 #include "headerfiles/useful_funcs.h"
 #include "headerfiles/linkedlist.h"
 #include "headerfiles/scheduler.h"
@@ -57,7 +59,10 @@ int main(int argc, char *argv[]) {
     int total_remaining;
     total_remaining = N; // number of processes left to finish
 
-    // input stuff
+    // --------------
+    // Input Stuff
+    // --------------
+
     char names[N][32];
     uint ready_times[N];
     uint execution_times[N];
@@ -76,7 +81,7 @@ int main(int argc, char *argv[]) {
         scanf("%u", &execution_times[i]);
 
         remaining_times[i] = execution_times[i];
-        PIDs[i] = -1; // arbitrarily initialize PID
+        PIDs[i] = -42; // arbitrarily initialize PID
         elapsed_steps[i] = 0;
         stats[i] = UNAVAILABLE;
     }
@@ -134,6 +139,7 @@ int main(int argc, char *argv[]) {
         tmp1 = ready_times[next_arrival];
         while ((arrival_itr <= N) && (tmp1 <= current_step)) {
             // add job to ready_queue
+            printf("Added: %d\n", sorted_ids[arrival_itr]);
             append_value(&tail, next_arrival);
             qsize += 1;
             // get next arrival
@@ -180,16 +186,20 @@ int main(int argc, char *argv[]) {
         // ------------------
         // Sync Steps
         // ------------------
-        // if (current_process_step > current_step) {
-        //     // sync main() steps with process steps
-        //     current_step = current_process_step;
-        // }
+        if (current_process_step > current_step) {
+            // sync main() steps with process steps
+            current_step = current_process_step;
+        }
     }
 
+    printf("_____________\n");
     for (int i = 0; i < N; i++) {
         printf("%s", names[i]);
         printf(" %d\n", PIDs[i]);
     }
+    printf("_____________\n");
+
+    sleep(1);
 
     return 0;
 }

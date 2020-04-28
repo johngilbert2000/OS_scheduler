@@ -124,6 +124,8 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
 
         // Pass clock timer information to kernel
         make_dmesg(PID, start_time, stop_time);
+
+        // sleep(1); // ensure dmesg is sent
         exit(EXIT_SUCCESS);
     }
     else { // PARENT PROCESS

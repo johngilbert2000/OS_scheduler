@@ -31,7 +31,7 @@ enum policy_type get_policy() {
 }
 
 void make_dmesg(pid PID, long double start_time, long double stop_time) {
-    printf("[Project 1] %d %Lf %Lf\n", PID, start_time, stop_time);
+    printf("[Project1] %d %Lf %Lf\n", PID, start_time, stop_time);
     // %llu long long
     // syscall(PRINTK_STUFF, PID, start_time, stop_time);
     return; 
