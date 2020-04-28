@@ -12,26 +12,31 @@
 #include "headerfiles/process.h"
 
 
-// - pipes, jobstatus
-// - process_control
-// - update_status
-// - cleanlist() --> total_remaining_procs--, qsize--
+// - pipes, jobstatus [done?]
+// - process_control [done?]
+// - update_status [done?]
+// - cleanlist() --> total_remaining_procs--, qsize-- [almost done]
 // - optimize PSJF, SJF (4 ready queues instead of 1)
 
 // - dmesg syscall
 // - get_time() syscall (in proc_step)
 
 
-void clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
+uint clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
+    uint num_finished;
     uint id;
+    num_finished = 0;
+
     id = (*head)->val;
     while ((qsize > 0) && (stats[id] == FINISHED)) {
         *running = false;
         remove_head(head);
         *qsize = *qsize - 1;
         *total_remaining = *total_remaining - 1;
+        num_finished += 1;
         if (qsize > 0) { id = (*head)->val; }
     }
+    return num_finished;
 }
 
 int main(int argc, char *argv[]) {
@@ -48,17 +53,19 @@ int main(int argc, char *argv[]) {
     if (IO) printf("Number processes: ");
     scanf("%u", &N);
 
+    int total_remaining;
+    total_remaining = N; // number of processes left to finish
+
     // input stuff
     char names[N][32];
     uint ready_times[N];
     uint execution_times[N];
     uint remaining_times[N];
     
-    // output stuff, may be unnecessary
-    // long long start_times[N];
-    // long long end_times[N];
     pid PIDs[N];
-    
+    uint current_step, current_process_step, total_steps;
+    uint elapsed_steps[N]; // elapsed time_units() of each individual process   
+
     // N R T
     for (int i = 0; i < N; i++) {
         if (IO) printf("N R T: ");
@@ -67,22 +74,21 @@ int main(int argc, char *argv[]) {
         scanf("%u", &execution_times[i]);
 
         remaining_times[i] = execution_times[i];
-        PIDs[i] = -1;
+        PIDs[i] = -1; // arbitrarily initialize PID
+        elapsed_steps[i] = 0;
     }
 
+    // ------------------
+    // Sort Ready Times
+    // ------------------
+    uint sorted_ids[N];
+    id_sort(ready_times, sorted_ids, N);
 
     // ------------------
     // Parameters
     // ------------------
  
-    // sort ready_times[N]
-    uint sorted_ids[N];
-    id_sort(ready_times, sorted_ids, N);
-
-    // total remaining execution time
-    int total_remaining = reduce(add, remaining_times, N);
-
-    uint current_time = 0;
+    // uint current_time = 0;
 
     uint prev_id; // previous selected id
     uint id = 0; // current selected id
@@ -103,13 +109,17 @@ int main(int argc, char *argv[]) {
     running = false; // indicates previous job is still running; (used for SJF)
     jobstat stats[N];
     int pipe_fds[2][N];
+
+    total_steps = reduce(add, execution_times, N); // number of time_units() to complete in total
+    current_step = 0;
+    uint finished_jobs = 0;
     
-    while (total_remaining > 0) {
+    while (finished_jobs < N) {
         // ------------------
         // Update Ready Queue
         // ------------------
         // Check if next job arrived, and if so, update the ready queue
-        while ((arrival_itr < N) && (ready_times[next_arrival] <= current_time)) {
+        while ((arrival_itr < N) && (ready_times[next_arrival] <= current_step)) {
             // add job to ready_queue
             append_value(&tail, next_arrival);
             qsize += 1;
@@ -123,7 +133,7 @@ int main(int argc, char *argv[]) {
             // Select Job
             // ------------------
             prev_id = id;
-            id = select_job(&head, &tail, policy, current_time, remaining_times, running);
+            id = select_job(&head, &tail, policy, current_step, remaining_times, running);
             
             // ------------------
             // Run Job
@@ -136,11 +146,19 @@ int main(int argc, char *argv[]) {
             // ------------------
             // Update Parameters
             // ------------------
-            update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
-            clean_list(&head, &qsize, &total_remaining, stats, &running);
+            elapsed_steps[id] = update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
+            finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
+            current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
         }
+        current_step += 1;
 
-
+        // ------------------
+        // Sync Steps
+        // ------------------
+        if (current_process_step > current_step) {
+            // sync main() steps with process steps
+            current_step = current_process_step;
+        }
     }
 
     return 0;
@@ -293,3 +311,10 @@ int main(int argc, char *argv[]) {
             //     }
 
             // current_time += 1;
+
+
+
+
+    // total remaining execution time
+    // int total_remaining = reduce(add, remaining_times, N);
+

@@ -93,18 +93,17 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
     localstatus = *stat;
     long double start_time, stop_time;
 
+    uint elapsed_local;
+    elapsed_local = 0; // internal time_unit clock
 
     PID = fork();
     if (PID == 0) { // CHILD PROCESS
         // Pass start status into pipe
         PID = getpid();
-        localstatus = STARTED;
-        write(pipefd[1], &localstatus, sizeof(localstatus));
-        if (DIO) {printf(" "); disp_child(id, localstatus);}
 
-        start_time = get_time();
+        start_time = get_time(); // initialize clock timer
 
-        // Set scheduler to other
+        // Set Linux scheduler priority
         struct sched_param param;
         param.sched_priority = 0;
         sched_setscheduler(PID, SCHED_OTHER, &param);
@@ -112,31 +111,36 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
         // Run process
         for (int i = 0; i < exec_time; i++) {
             time_unit();
-            if ((DIO) && (i % 10 == 0)) {
-              printf(" ");
-              if (DIO) {disp_child(id, localstatus);}
-            }
+            elapsed_local += 1;
+            write(pipefd[1], &elapsed_local, sizeof(elapsed_local));
         }
 
         // Pass finished status into pipe and exit
-        localstatus = FINISHED;
-        write(pipefd[1], &localstatus, sizeof(localstatus));
-        if (DIO) { printf("  "); disp_child(id, localstatus);}
+        // localstatus = FINISHED;
+        // write(pipefd[1], &localstatus, sizeof(localstatus));
+        write(pipefd[1], &elapsed_local, sizeof(elapsed_local));
 
         stop_time = get_time();
-        if (DIO != 1) make_dmesg(PID, start_time, stop_time);
+
+        // Pass clock timer information to kernel
+        make_dmesg(PID, start_time, stop_time);
         exit(EXIT_SUCCESS);
     }
     else { // PARENT PROCESS
         // Get start status from child process
-        read(pipefd[0], &localstatus, sizeof(localstatus));
-        *stat = localstatus;
+        // read(pipefd[0], &localstatus, sizeof(localstatus));
+        // *stat = localstatus;
+
+        // read(pipefd[0], &elapsed_local, sizeof(elapsed_local));
+        // *elapsed = elapsed_local;
+        *stat = STARTED;
         if (DIO) disp_parent(id, localstatus);
     }
     return PID;
 }
 
-pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time, int pipefd[2], bool running) {
+pid process_control(uint id, jobstat *stat, pid PID, \
+  pid prevPID, uint exec_time, int pipefd[2], bool running) {
     // Creates new process if stat indicates job has not started
     // Otherwise, switches to process with given PID 
     // from the previous process (prevPID)
@@ -163,7 +167,8 @@ pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time
    return PID;
 }
 
-void update_status(int id, pid PID, jobstat *stat, int *fd) {
+uint update_status(int id, pid PID, jobstat *stat, int *fd) {
+    uint process_step; // number of elapsed time_units for given process
     int waitstatus;
     waitstatus = 1; // initialized to silence warnings
 
@@ -174,11 +179,18 @@ void update_status(int id, pid PID, jobstat *stat, int *fd) {
     if (*stat == STARTED) waitpid(PID, &waitstatus, WNOHANG);
 
     if ((waitstatus == 0) && (*stat != FINISHED)) {
-        read(fd[0], stat, sizeof(*stat));
-        // *stat = FINISHED;
+        read(fd[0], &process_step, sizeof(process_step));
+        *stat = FINISHED;
     } 
     if (DIO) disp_main(id, *stat);
-    // return *stat;
+
+    // // Check for overflow // (originally used int)
+    // if (process_step < 0) {
+    //   process_step = 0;
+    //   process_step = (uint) process_step;
+    // }
+
+    return process_step;
 }
 
 
@@ -335,3 +347,62 @@ void update_status(int id, pid PID, jobstat *stat, int *fd) {
 
 
 
+
+// pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
+//     // Create new process with fork(); (used in process_control)
+ 
+//     // stat: the status of the selected job
+//     // exec_time: execution time of selected job
+//     // pipefd: file descriptor for piping selected job status from child process
+//     pid PID;
+//     jobstat localstatus;
+//     localstatus = *stat;
+//     long double start_time, stop_time;
+
+//     PID = fork();
+//     if (PID == 0) { // CHILD PROCESS
+//         // Pass start status into pipe
+//         PID = getpid();
+//         // localstatus = STARTED;
+//         // write(pipefd[1], &localstatus, sizeof(localstatus));
+//         // if (DIO) {printf(" "); disp_child(id, localstatus);}
+
+//         start_time = get_time(); // initialize clock timer
+
+//         // Set Linux scheduler priority
+//         struct sched_param param;
+//         param.sched_priority = 0;
+//         sched_setscheduler(PID, SCHED_OTHER, &param);
+
+//         // Run process
+//         for (int i = 0; i < exec_time; i++) {
+//             time_unit();
+//             if ((DIO) && (i % 10 == 0)) {
+//               printf(" ");
+//               if (DIO) {disp_child(id, localstatus);}
+//             }
+//         }
+
+//         // Pass finished status into pipe and exit
+//         // localstatus = FINISHED;
+//         // write(pipefd[1], &localstatus, sizeof(localstatus));
+//         write(pipefd[1], &elapsed_local, sizeof(elapsed_local));
+
+//         stop_time = get_time();
+
+//         // Pass clock timer information to kernel
+//         make_dmesg(PID, start_time, stop_time);
+//         exit(EXIT_SUCCESS);
+//     }
+//     else { // PARENT PROCESS
+//         // Get start status from child process
+//         // read(pipefd[0], &localstatus, sizeof(localstatus));
+//         // *stat = localstatus;
+
+//         read(pipefd[0], &elapsed_local, sizeof(elapsed_local));
+//         *elapsed = elapsed_local;
+//         *stat = STARTED;
+//         if (DIO) disp_parent(id, localstatus);
+//     }
+//     return PID;
+// }
