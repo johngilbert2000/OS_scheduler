@@ -165,6 +165,9 @@ pid process_control(uint id, jobstat *stat, pid PID, \
     else if (*stat == UNAVAILABLE) {
       PID = start_process(id, stat, exec_time, pipefd);
     }
+    else {
+      printf("<<<< PROCESS CONTROL CONFUSION >>>>");
+    }
     
    return PID;
 }

@@ -12,7 +12,7 @@
 
 #include <sys/time.h>
 
-#include <sys/types.h> // for pid_t
+// #include <sys/types.h> // for pid_t
 #include <unistd.h> // for fork()
 #include <inttypes.h> // for printing pointers
 #include <sys/wait.h> // for waitpid?
@@ -21,6 +21,7 @@
 #include <sys/resource.h>
 // #include <pthread.h> // for pipes?
 
+typedef int pid_t;
 
 #include <stdarg.h>
 #include <sched.h>
