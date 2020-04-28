@@ -163,19 +163,22 @@ pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time
    return PID;
 }
 
-pid update_status(int id, int waitstatus, pid PID, jobstat *stat, int *fd) {
+void update_status(int id, pid PID, jobstat *stat, int *fd) {
+    int waitstatus;
+    waitstatus = 1; // initialized to silence warnings
 
-  // Ensure pipe file descriptor is set to nonblocking
-  fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
-  fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+    // Ensure pipe file descriptor is set to nonblocking
+    fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+    fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
 
-  if (waitstatus > 0) waitpid(PID, &waitstatus, WNOHANG);
+    if (*stat == STARTED) waitpid(PID, &waitstatus, WNOHANG);
 
-  if ((waitstatus == 0) && (*stat != FINISHED)) {
-    read(fd[0], stat, sizeof(*stat));
-  } 
-  if (DIO) disp_main(id, *stat);
-  return PID;
+    if ((waitstatus == 0) && (*stat != FINISHED)) {
+        read(fd[0], stat, sizeof(*stat));
+        // *stat = FINISHED;
+    } 
+    if (DIO) disp_main(id, *stat);
+    // return *stat;
 }
 
 

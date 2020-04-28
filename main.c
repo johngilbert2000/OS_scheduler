@@ -21,6 +21,19 @@
 // - dmesg syscall
 // - get_time() syscall (in proc_step)
 
+
+void clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
+    uint id;
+    id = (*head)->val;
+    while ((qsize > 0) && (stats[id] == FINISHED)) {
+        *running = false;
+        remove_head(head);
+        *qsize = *qsize - 1;
+        *total_remaining = *total_remaining - 1;
+        if (qsize > 0) { id = (*head)->val; }
+    }
+}
+
 int main(int argc, char *argv[]) {
 
     enum policy_type policy; 
@@ -42,8 +55,8 @@ int main(int argc, char *argv[]) {
     uint remaining_times[N];
     
     // output stuff, may be unnecessary
-    long long start_times[N];
-    long long end_times[N];
+    // long long start_times[N];
+    // long long end_times[N];
     pid PIDs[N];
     
     // N R T
@@ -88,9 +101,8 @@ int main(int argc, char *argv[]) {
     tail = tmp;
     bool running;
     running = false; // indicates previous job is still running; (used for SJF)
-    // double actual_time;
-    // uint temporary_id;
-
+    jobstat stats[N];
+    int pipe_fds[2][N];
     
     while (total_remaining > 0) {
         // ------------------
@@ -106,49 +118,27 @@ int main(int argc, char *argv[]) {
             next_arrival = sorted_ids[arrival_itr];
         }
 
-        // ------------------
-        // Select Job
-        // ------------------
         if (qsize > 0) {
+            // ------------------
+            // Select Job
+            // ------------------
             prev_id = id;
             id = select_job(&head, &tail, policy, current_time, remaining_times, running);
-            if (remaining_times[id] == execution_times[id]){
-                start_times[id] = get_time(); // process start time
-            }
+            
+            // ------------------
+            // Run Job
+            // ------------------
+            PIDs[id] = process_control(id, &stats[id], PIDs[id], PIDs[prev_id], \
+                execution_times[id], pipe_fds[id], running);
+            running = true;
+            time_unit();
+
+            // ------------------
+            // Update Parameters
+            // ------------------
+            update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
+            clean_list(&head, &qsize, &total_remaining, stats, &running);
         }
-
-        // ------------------
-        // Run Job
-        // ------------------
-
-        
-
-
-
-        
-        time_unit();
-        running = true;
-
-        // ------------------
-        // Update Parameters
-        // ------------------
-
-        if (qsize > 0) {
-            remaining_times[id] -= 1;
-            total_remaining -= 1;
-
-            // remove job from ready queue if complete
-            if (remaining_times[id] == 0) {
-                // node *tmp;
-                // tmp = lookup(head, id);
-                remove_head(&head);
-                running = false;
-                qsize -= 1;
-
-                end_times[id] = get_time(); // process stop time
-            }
-        }
-        current_time += 1;
 
 
     }
@@ -282,3 +272,24 @@ int main(int argc, char *argv[]) {
         //     PID = startprocess();
         // }
 
+// if (remaining_times[id] == execution_times[id]){
+//                 start_times[id] = get_time(); // process start time
+//             }
+
+
+
+            //     remaining_times[id] -= 1;
+            //     total_remaining -= 1;
+
+            //     // remove job from ready queue if complete
+            //     if (remaining_times[id] == 0) {
+            //         // node *tmp;
+            //         // tmp = lookup(head, id);
+            //         remove_head(&head);
+            //         running = false;
+            //         qsize -= 1;
+
+            //         end_times[id] = get_time(); // process stop time
+            //     }
+
+            // current_time += 1;
