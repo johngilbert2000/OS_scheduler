@@ -14,14 +14,14 @@ More details can be found in `report.pdf`
 
 ### Compiling and Running
 
-Compile and run with the following command (Python required):
+Compile and run with the following command (*Python required*):
 ```
 make runall
 ```
 This will compile and run for all input text files in the `input/` folder, and pipe the results into files in `output/`
 
 
-(Without Python) this is equivalent to:
+(*Without Python*) this is equivalent to:
 ```
 make
 
@@ -33,14 +33,14 @@ dmesg | grep OS_scheduler > RR_1_dmesg.txt
 
 ...
 ```
-for all text files (`FIFO_1.txt`, `RR_1.txt`, ...) in the `input/` folder. (Note: `make run` is equivalent to `./schedProgram`)
+for all text files (`FIFO_1.txt`, `RR_1.txt`, ...) in the `input/` folder. (Note: `make run` is also equivalent to `./schedProgram`)
 
 When finished:
 ```
 make clean
 ```
 
-To remove all output files as well (Python required):
+To remove all output files as well (*Python required*):
 ```
 make cleanall
 ```
