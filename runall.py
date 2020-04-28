@@ -16,5 +16,5 @@ infiles = [f.split(".")[0] for f in infiles if ".txt" in f]
 for filename in infiles:
     os.system(f"make run < {inpath}/{filename}.txt > {outpath}/{filename}_stdout.txt \n\
     dmesg | grep OS_scheduler > {outpath}/{filename}_dmesg.txt")
-
+    # sleep(10)
 
