@@ -1,5 +1,5 @@
-#ifndef PROC_H
-#define PROC_H
+#ifndef PROCESS_H
+#define PROCESS_H
 
 #include "definitions.h"
 #include "IO.h"
