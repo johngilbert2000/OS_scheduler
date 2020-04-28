@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "definitions.h"
+#include "headerfiles/definitions.h"
 
 enum policy_type get_policy() {
 

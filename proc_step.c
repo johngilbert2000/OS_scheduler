@@ -6,7 +6,7 @@
 #include <time.h>
 #include <sched.h>
 #include <fcntl.h> // for nonblocking file descriptor pipes
-#include "definitions.h"
+#include "headerfiles/definitions.h"
 
 #define LOW_PRIORITY 90
 #define HIGH_PRIORITY 10

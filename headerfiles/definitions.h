@@ -2,7 +2,7 @@
 #define DEFINITIONS_H
 
 #define DEBUG 1
-#define IO 1
+#define IO 1 // Turn this to 1 to display prompts for the user (running without input files)
 
 typedef unsigned int uint;
 

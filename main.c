@@ -4,11 +4,11 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <time.h>
-#include "useful_funcs.h"
-#include "linkedlist.h"
-#include "scheduler.h"
-#include "IO.h"
-#include "definitions.h"
+#include "headerfiles/useful_funcs.h"
+#include "headerfiles/linkedlist.h"
+#include "headerfiles/scheduler.h"
+#include "headerfiles/IO.h"
+#include "headerfiles/definitions.h"
 
 
 // TODO (short version)

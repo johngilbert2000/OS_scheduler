@@ -3,9 +3,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
-#include "useful_funcs.h"
-#include "linkedlist.h"
-#include "definitions.h"
+#include "headerfiles/useful_funcs.h"
+#include "headerfiles/linkedlist.h"
+#include "headerfiles/definitions.h"
 
 // typedef unsigned int uint;
 // enum policy_type {FIFO, RR, SJF, PSJF};

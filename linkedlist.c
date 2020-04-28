@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "linkedlist.h"
-#include "definitions.h"
+#include "headerfiles/linkedlist.h"
+#include "headerfiles/definitions.h"
 
 
 // struct linked {
