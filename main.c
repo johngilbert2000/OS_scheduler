@@ -14,10 +14,6 @@
 #include "headerfiles/process.h"
 
 
-// - pipes, jobstatus [done?]
-// - process_control [done?]
-// - update_status [done?]
-// - cleanlist() --> total_remaining_procs--, qsize-- [almost done]
 // - optimize PSJF, SJF (4 ready queues instead of 1)
 
 // - dmesg syscall
@@ -358,3 +354,7 @@ int main(int argc, char *argv[]) {
     // total remaining execution time
     // int total_remaining = reduce(add, remaining_times, N);
 
+// - pipes, jobstatus [done?]
+// - process_control [done?]
+// - update_status [done?]
+// - cleanlist() --> total_remaining_procs--, qsize-- [done]

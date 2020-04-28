@@ -12,43 +12,6 @@
 #include <signal.h> // for kill()
 #include <unistd.h> // for fork()
 
-// TODO:
-// - Test swap_priorities
-// - use nice() values instead of sched_setscheduler in swap_priorities
-// - change get_time() into a syscall
-// - change make_dmesg() into a syscall
-
-// --------------
-// To do in main:
-
-// int pipe_ret;
-// jobstat fd[2];
-// // Ensure pipe file descriptor is set to nonblocking
-
-// fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
-// fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
-
-// // Create pipe
-// pipe_ret = pipe(fd);
-// if (pipe_ret == -1) { perror("pipe error"); exit(1); }
-// // --------------
-
-// struct job_data {
-//   pid PID;
-//   char *name;
-//   uint ready_time;
-//   uint execution_time;
-//   enum job_status;
-// };
-
-// typedef struct job_data job;
-
-// void make_dmesg(pid PID, long long start_time, long long stop_time) {
-//     printf("[Project 1] %d %llu %llu", PID, start_time, stop_time);
-//     // syscall(PRINTK, PID, start_time, stop_time);
-//     return; 
-// }
-
 void disp_main(pid id, jobstat x){
   printf("[ P%d ]: %d  (main - process %d)\n", id, x, getpid());
 }
@@ -60,8 +23,6 @@ void disp_parent(pid id, jobstat x){
 void disp_child(pid id, jobstat x){
   printf("[ P%d ]: %d  (child - process %d)\n", id, x, getpid());
 }
-
-
 
 
 long long get_time(){
@@ -411,4 +372,41 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 //         if (DIO) disp_parent(id, localstatus);
 //     }
 //     return PID;
+// }
+
+// TODO:
+// - Test swap_priorities
+// - use nice() values instead of sched_setscheduler in swap_priorities
+// - change get_time() into a syscall
+// - change make_dmesg() into a syscall
+
+// --------------
+// To do in main:
+
+// int pipe_ret;
+// jobstat fd[2];
+// // Ensure pipe file descriptor is set to nonblocking
+
+// fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+// fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+
+// // Create pipe
+// pipe_ret = pipe(fd);
+// if (pipe_ret == -1) { perror("pipe error"); exit(1); }
+// // --------------
+
+// struct job_data {
+//   pid PID;
+//   char *name;
+//   uint ready_time;
+//   uint execution_time;
+//   enum job_status;
+// };
+
+// typedef struct job_data job;
+
+// void make_dmesg(pid PID, long long start_time, long long stop_time) {
+//     printf("[Project 1] %d %llu %llu", PID, start_time, stop_time);
+//     // syscall(PRINTK, PID, start_time, stop_time);
+//     return; 
 // }
