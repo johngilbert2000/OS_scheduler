@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +26,7 @@
 #include <sched.h>
 #include "headerfiles/definitions.h"
 
+#include <signal.h> // for kill()
 
 #define DIO 1 // debug io
 
@@ -111,8 +114,11 @@ void swap_priorities(pid oldPID, pid newPID) {
     new_param.sched_priority = HIGH_PRIORITY;
     // sched_setscheduler(oldPID, SCHED_FIFO, &old_param);
     // sched_setscheduler(newPID, SCHED_FIFO, &new_param);
-    setpriority(PRIO_PROCESS, newPID, HIGH_PRIORITY);
-    setpriority(PRIO_PROCESS, oldPID, LOW_PRIORITY);
+    // setpriority(PRIO_PROCESS, newPID, HIGH_PRIORITY);
+    // setpriority(PRIO_PROCESS, oldPID, LOW_PRIORITY);
+    kill(oldPID, SIGSTOP);
+    kill(newPID, SIGCONT);
+
 
 }
 
@@ -120,7 +126,8 @@ void init_priority(pid PID) {
     struct sched_param param;
     param.sched_priority = HIGH_PRIORITY;
     // sched_setscheduler(PID, SCHED_FIFO, &param);
-    setpriority(PRIO_PROCESS, PID, HIGH_PRIORITY);
+    // setpriority(PRIO_PROCESS, PID, HIGH_PRIORITY);
+    kill(PID, SIGCONT);
 }
 
 pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
@@ -184,15 +191,27 @@ pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time
     // pipefd: file descriptor for piping selected job status from child process
     // running: true if previous job is running, else false
 
-    if (*stat == UNAVAILABLE) {
-        PID = start_process(id, stat, exec_time, pipefd);
+    if (running == true) {
+      printf("Stopping: %d\n", prevPID);
+      kill(prevPID, SIGSTOP);
     }
-       if (running == true) {
-        swap_priorities(prevPID, PID);
+    if (*stat == STARTED) {
+      printf("Continue: %d\n", PID);
+      kill(PID, SIGCONT);
     }
-    else {
-        init_priority(PID);
+    else if (*stat == UNAVAILABLE) {
+      PID = start_process(id, stat, exec_time, pipefd);
     }
+    
+
+    // if ((running == true) && (*stat == STARTED)) {
+    //   // swap_priorities(prevPID, PID);
+    //   kill(prevPID, SIGSTOP);
+    //   kill(PID, SIGCONT);
+    // }
+    // else {
+    //     init_priority(PID);
+    // }
 
    return PID;
 }
@@ -214,6 +233,9 @@ pid update_status(int id, int waitstatus, pid PID, jobstat *stat, int *fd) {
 
 
 int main() {
+  // ----------------
+  // Initialize stuff
+
   jobstat j, j2;
   int id2 = 1;
   int id = 0;
@@ -227,47 +249,74 @@ int main() {
 
   int pipe_ret;
   int fd[2][MAXN];
+  bool running; // whether or not a previous child process is running
 
+  // PROCESS 1 PIPE
   // Ensure pipe file descriptor is set to nonblocking
   fcntl(fd[0][id2], F_SETFL, fcntl(fd[0][id2], F_GETFL) | O_NONBLOCK);
   fcntl(fd[1][id2], F_SETFL, fcntl(fd[0][id2], F_GETFL) | O_NONBLOCK);
 
-
-  
-
+  // PROCESS 0 PIPE
   // Ensure pipe file descriptor is set to nonblocking
   fcntl(fd[0][id], F_SETFL, fcntl(fd[0][id], F_GETFL) | O_NONBLOCK);
   fcntl(fd[1][id], F_SETFL, fcntl(fd[0][id], F_GETFL) | O_NONBLOCK);
 
-  // Create pipe
+  // ---------------
+
+  // Create pipe 0
   pipe_ret = pipe(fd[id]);
   if (pipe_ret == -1) { perror("pipe error"); exit(1); }
 
-  // Create pipe
+  // Create pipe 1
   pipe_ret = pipe(fd[id2]);
   if (pipe_ret == -1) { perror("pipe error"); exit(1); }
 
+  if (DIO) disp_main(id, j); // initially 0
+  if (DIO) disp_main(id2, j2); // initially 0
 
-  if (DIO) disp_main(id, j);
-  PIDs[id] = start_process(id, &j, exec_time[id], fd[id]);
-  PIDs[id2] = start_process(id2, &j2, exec_time[id2], fd[id2]);
+  // PIDs[id] = start_process(id, &j, exec_time[id], fd[id]);
+  // PIDs[id2] = start_process(id2, &j2, exec_time[id2], fd[id2]);
 
-  bool running = true;
+  running = false; // no child process running
+
+  // Start process 0
+  PIDs[id] = process_control(id, &j, PIDs[id], PIDs[id2], exec_time[id], fd[id], running);
+  running = true; // process 0 is running
+
+  // Main - check if process 0 is running
+  update_status(id, waitstatus, PIDs[id], &j, fd[id]);
+
+  // Start process 1 (interrupt process 0)
   PIDs[id2] = process_control(id2, &j2, PIDs[id2], PIDs[id], exec_time[id2], fd[id2], running);
 
+  // Main - check if process 1 is running
+  update_status(id2, waitstat2, PIDs[id2], &j2, fd[id2]);
   // disp_main(id, j);
-  update_status(id, waitstatus, PIDs[id], &j, fd[id]);
+  // update_status(id, waitstatus, PIDs[id], &j, fd[id]);
+
+  // Wait for process 1 to finish
+  waitpid(PIDs[id2], &waitstat2, 0); 
+
+  // Main - Check that process 1 finished
   update_status(id2, waitstat2, PIDs[id2], &j2, fd[id2]);
 
+  // Continue process 0
+  PIDs[id] = process_control(id, &j, PIDs[id], PIDs[id2], exec_time[id], fd[id], running);
+
+  // Main - check process 0 is running
+  update_status(id, waitstatus, PIDs[id], &j, fd[id]);
+
+  // Wait for process 0 to finish
   waitpid(PIDs[id], &waitstatus, 0);
+
+  // Main - check that process 0 finished
   update_status(id, waitstatus, PIDs[id], &j, fd[id]);
   // if (DIO) disp_main(id, j);
 
-  waitpid(PIDs[id2], &waitstat2, 0);
-  update_status(id2, waitstat2, PIDs[id2], &j2, fd[id2]);
+  // waitpid(PIDs[id2], &waitstat2, 0);
+  // update_status(id2, waitstat2, PIDs[id2], &j2, fd[id2]);
  
   return 0;
-
 
 }
 
