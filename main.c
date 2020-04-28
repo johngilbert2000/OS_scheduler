@@ -9,7 +9,7 @@
 #include "headerfiles/scheduler.h"
 #include "headerfiles/IO.h"
 #include "headerfiles/definitions.h"
-#include "headerfiles/proc_step.h"
+#include "headerfiles/process.h"
 
 
 // - pipes, jobstatus
