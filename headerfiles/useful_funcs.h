@@ -3,17 +3,16 @@
 
 #include "definitions.h"
 
-
-extern int reduce(unsigned int (*f)(unsigned int,unsigned int), unsigned int nums[], unsigned int length);
-extern unsigned int get_gcd(unsigned int a, unsigned int b);
-extern unsigned int get_lcm(unsigned int a, unsigned int b);
-extern unsigned int LCM(unsigned int nums[], unsigned int length);
-extern unsigned int get_sort_idx(unsigned int nums[], unsigned int left, unsigned int right, unsigned int order);
-extern void quicksort_recursion(unsigned int nums[], unsigned int left, unsigned int right, unsigned int order);
-extern void quicksort(unsigned int nums[], unsigned int results[], unsigned int length);
-extern void zeros(unsigned int results[], unsigned int length);
-extern void repeat(unsigned int x, unsigned int results[]);
-extern void id_sort(unsigned int inputs[], unsigned int ids[], unsigned int length);
-extern unsigned int add(unsigned int a, unsigned int b);
+extern uint reduce(uint (*f)(unsigned int,unsigned int), uint nums[], uint length);
+extern uint get_sort_idx(uint nums[], uint left, uint right, uint order);
+extern void quicksort_recursion(uint nums[], uint left, uint right, uint order);
+extern void quicksort(uint nums[], uint results[], uint length);
+extern void id_sort(uint inputs[], uint ids[], uint length);
+extern uint add(uint a, uint b);
+// extern uint get_gcd(uint a, uint b);
+// extern uint get_lcm(uint a, uint b);
+// extern uint LCM(uint nums[], uint length);
+// extern void zeros(uint results[], uint length);
+// extern void repeat(uint x, uint results[]);
 
 #endif
