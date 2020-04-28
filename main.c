@@ -127,11 +127,12 @@ int main(int argc, char *argv[]) {
         // Update Ready Queue
         // ------------------
         // Check if next job arrived, and if so, update the ready queue
-        tmp1 = ready_times[next_arrival];
         if (DEBUG) printf("___________ \n");
         if (DEBUG) printf("adding jobs\n");
 
-        while ((arrival_itr < N) && (tmp1 <= current_step)) {
+
+        tmp1 = ready_times[next_arrival];
+        while ((arrival_itr <= N) && (tmp1 <= current_step)) {
             // add job to ready_queue
             append_value(&tail, next_arrival);
             qsize += 1;
@@ -169,6 +170,8 @@ int main(int argc, char *argv[]) {
 
             finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
             current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
+
+            printf("%d / %d\n", finished_jobs, N);
         }
         current_step += 1;
 
@@ -181,6 +184,11 @@ int main(int argc, char *argv[]) {
         //     // sync main() steps with process steps
         //     current_step = current_process_step;
         // }
+    }
+
+    for (int i = 0; i < N; i++) {
+        printf("%s", names[i]);
+        printf(" %d\n", PIDs[i]);
     }
 
     return 0;
