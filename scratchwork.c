@@ -25,11 +25,12 @@
 #include <stdarg.h>
 #include <sched.h>
 #include "headerfiles/definitions.h"
+#include "headerfiles/IO.h"
 
 #include <signal.h> // for kill()
 
-#define DIO 1 // debug io
-#define NOT_LINUX 
+// #define DIO 1 // debug io
+// #define NOT_LINUX 
 
 // note:
 // - kill() with SIGSTOP --> pause process
@@ -37,12 +38,12 @@
 
 
 #define MAXN 20
-#define STARTED 1
-#define FINISHED 2
+// #define STARTED 1
+// #define FINISHED 2
 // #define LOW_PRIORITY 90
 // #define HIGH_PRIORITY 10
-#define HIGH_PRIORITY -10
-#define LOW_PRIORITY 10
+// #define HIGH_PRIORITY -10
+// #define LOW_PRIORITY 10
 
 
 // void time_unit() {

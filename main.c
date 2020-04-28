@@ -12,63 +12,14 @@
 #include "headerfiles/proc_step.h"
 
 
-// TODO (short version)
-// - cleanlist(), total_remaining_procs, qsize
-// - start_process()
-// - change_process()
-// - change_n_start()
-// - PSJF, SJF: use 4 ready_queues based on execution time
-// - syscall timer (add to processes)
-// - printk syscall for dmesg
-// - dmesg implementation
-// - move header files into folder
+// - pipes, jobstatus
+// - process_control
+// - update_status
+// - cleanlist() --> total_remaining_procs--, qsize--
+// - optimize PSJF, SJF (4 ready queues instead of 1)
 
-
-// TODO:
-// - change total_remaining to total_remaining_procs, initialized to N
-// - decrement total_remaining_procs every time clean_list(head) is called
-// - implement clean_list(node **head), which cycles through the ready_queue, 
-// checks to see if process finished, and if so, remove from list;
-// cleanlist(**head) stops when it hits a process that isn't finished
-// cleanlist(**head) decrements total_remaining_procs AND qsize
-// - implement start_process with fork(), getpid(), waitpid(), and pipe()
-// - implement change_process
-// - implement change_n_start_process
-
-// - split PSJF and SJF ready queue into 4 ready queues, based on execution times
-// i.e., ids with smaller execution times get added to ready_queue[0]'s linked list
-// and ids with largest execution times get added to ready_queue[3]'s linked list
-// when selecting jobs, if ready_queue[0] is empty, check ready_queue[1] for a linked list
-// etc.; that way, the scheduler doesn't have to search through all available jobs
-// to find the one with the minimum execution time
-
-// - timer syscall for dmesg
-// - printk syscall for dmesg
-
-// NOT URGENT TODO:
-// - Is it possible to move get policy stuff all into IO, 
-// and store execution_times[] and ready_times[] and names[] in a struct?
-// N will depend on user input...
-
-
-// #include <linux/ktime.h> // for getnstimeofday()
-
-// QUESTION: do I use fork to call time_unit(), with time_unit in a separate file?
-// void time_unit(){
-//     volatile unsigned long i; for(i=0;i<1000000UL;i++); 
-// } 
-
-// A note on implementation:
-// a linked list is used to hold ids of available jobs
-// the head of the linked list will always be the current job
-// (some policies will move new jobs to the head of the list when selecting them)
-
-// long long get_time(){
-//     // gets the clock time in nanoseconds (from time.h)
-//     struct timespec t;
-//     clock_gettime(CLOCK_REALTIME, &t);
-//     return (t.tv_sec*(int)1e9 + t.tv_nsec);
-// }
+// - dmesg syscall
+// - get_time() syscall (in proc_step)
 
 int main(int argc, char *argv[]) {
 
@@ -170,23 +121,11 @@ int main(int argc, char *argv[]) {
         // Run Job
         // ------------------
 
-        // if (running == false) {
-        //     uint *rtime_ptr = NULL; 
-        //     *rtime_ptr = &remaining_times[id]; 
-        //     PIDs[id] = start_process(&rtime_ptr);
-        // }
-        // else if (id != prev_id) {
-
-        // }
+        
 
 
-        // if (running[id] == true) {
-        //     continue_process(PID[id]);
-        // }
-        // else {
-        //     PID = startprocess();
-        // }
 
+        
         time_unit();
         running = true;
 
@@ -213,6 +152,15 @@ int main(int argc, char *argv[]) {
 
 
     }
+
+    return 0;
+}
+
+
+
+
+
+
 
     // FIFO: traverse sorted ready_times[N], 
     // in a tie (arrival), lowest index goes first, no preemption
@@ -258,6 +206,79 @@ int main(int argc, char *argv[]) {
     // Output
 
 
-    return 0;
-}
+// TODO (short version)
+// - cleanlist(), total_remaining_procs, qsize
+// - start_process()
+// - change_process()
+// - change_n_start()
+// - PSJF, SJF: use 4 ready_queues based on execution time
+// - syscall timer (add to processes)
+// - printk syscall for dmesg
+// - dmesg implementation
+// - move header files into folder
+
+
+// TODO:
+// - change total_remaining to total_remaining_procs, initialized to N
+// - decrement total_remaining_procs every time clean_list(head) is called
+// - implement clean_list(node **head), which cycles through the ready_queue, 
+// checks to see if process finished, and if so, remove from list;
+// cleanlist(**head) stops when it hits a process that isn't finished
+// cleanlist(**head) decrements total_remaining_procs AND qsize
+// - implement start_process with fork(), getpid(), waitpid(), and pipe()
+// - implement change_process
+// - implement change_n_start_process
+
+// - split PSJF and SJF ready queue into 4 ready queues, based on execution times
+// i.e., ids with smaller execution times get added to ready_queue[0]'s linked list
+// and ids with largest execution times get added to ready_queue[3]'s linked list
+// when selecting jobs, if ready_queue[0] is empty, check ready_queue[1] for a linked list
+// etc.; that way, the scheduler doesn't have to search through all available jobs
+// to find the one with the minimum execution time
+
+// - timer syscall for dmesg
+// - printk syscall for dmesg
+
+// NOT URGENT TODO:
+// - Is it possible to move get policy stuff all into IO, 
+// and store execution_times[] and ready_times[] and names[] in a struct?
+// N will depend on user input...
+
+
+// #include <linux/ktime.h> // for getnstimeofday()
+
+// QUESTION: do I use fork to call time_unit(), with time_unit in a separate file?
+// void time_unit(){
+//     volatile unsigned long i; for(i=0;i<1000000UL;i++); 
+// } 
+
+// A note on implementation:
+// a linked list is used to hold ids of available jobs
+// the head of the linked list will always be the current job
+// (some policies will move new jobs to the head of the list when selecting them)
+
+// long long get_time(){
+//     // gets the clock time in nanoseconds (from time.h)
+//     struct timespec t;
+//     clock_gettime(CLOCK_REALTIME, &t);
+//     return (t.tv_sec*(int)1e9 + t.tv_nsec);
+// }
+
+    // run process
+        // if (running == false) {
+        //     uint *rtime_ptr = NULL; 
+        //     *rtime_ptr = &remaining_times[id]; 
+        //     PIDs[id] = start_process(&rtime_ptr);
+        // }
+        // else if (id != prev_id) {
+
+        // }
+
+
+        // if (running[id] == true) {
+        //     continue_process(PID[id]);
+        // }
+        // else {
+        //     PID = startprocess();
+        // }
 
