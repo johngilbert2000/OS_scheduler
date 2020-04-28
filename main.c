@@ -69,7 +69,7 @@ long long get_time(){
     return (t.tv_sec*(int)1e9 + t.tv_nsec);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 
     enum policy_type policy; 
 

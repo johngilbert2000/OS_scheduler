@@ -129,7 +129,7 @@ pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat
     if (*stat == UNAVAILABLE) {
         PID = start_process(stat, exec_time, pipefd);
     }
-       if (running = true) {
+       if (running == true) {
         swap_priorities(prevPID, PID);
     }
     else {
