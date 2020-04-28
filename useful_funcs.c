@@ -45,7 +45,7 @@ void filter(uint (*expr)(unsigned int), uint nums[], uint results[], uint n){
     }
 }
 
-uint reduce(uint (*f)(unsigned int,unsigned int), uint nums[], uint length){
+uint reduce(uint (*f)(uint, uint), uint nums[], uint length){
     /* Reduces a list integer nums[] of given length with function f */
 
     // Example:

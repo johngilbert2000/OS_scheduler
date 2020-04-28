@@ -3,7 +3,7 @@
 
 #include "definitions.h"
 
-extern uint reduce(uint (*f)(unsigned int,unsigned int), uint nums[], uint length);
+extern uint reduce(uint (*f)(uint,uint), uint nums[], uint length);
 extern uint get_sort_idx(uint nums[], uint left, uint right, uint order);
 extern void quicksort_recursion(uint nums[], uint left, uint right, uint order);
 extern void quicksort(uint nums[], uint results[], uint length);

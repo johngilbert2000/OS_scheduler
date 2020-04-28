@@ -134,7 +134,7 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
         // read(pipefd[0], &elapsed_local, sizeof(elapsed_local));
         // *elapsed = elapsed_local;
         *stat = STARTED;
-        if (DIO) disp_parent(id, localstatus);
+        if (DEBUG) disp_parent(id, localstatus);
     }
     return PID;
 }
@@ -153,11 +153,11 @@ pid process_control(uint id, jobstat *stat, pid PID, \
     // running: true if previous job is running, else false
 
     if (running == true) {
-      if (DIO) printf("Stopping: %d\n", prevPID);
+      if (DEBUG) printf("Stopping: %d\n", prevPID);
       kill(prevPID, SIGSTOP);
     }
     if (*stat == STARTED) {
-      if (DIO) printf("Continue: %d\n", PID);
+      if (DEBUG) printf("Continue: %d\n", PID);
       kill(PID, SIGCONT);
     }
     else if (*stat == UNAVAILABLE) {
@@ -180,10 +180,10 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
     if (*stat == STARTED) waitpid(PID, &waitstatus, WNOHANG);
 
     if ((waitstatus == 0) && (*stat != FINISHED)) {
-        read(fd[0], &process_step, sizeof(process_step));
+        // read(fd[0], &process_step, sizeof(process_step));
         *stat = FINISHED;
     } 
-    if (DIO) disp_main(id, *stat);
+    if (DEBUG) disp_main(id, *stat);
 
     // // Check for overflow // (originally used int)
     // if (process_step < 0) {

@@ -26,6 +26,7 @@ uint clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], 
     uint num_finished;
     uint id;
     num_finished = 0;
+    if (DEBUG) { printf("Cleaning the queue \n"); }
 
     id = (*head)->val;
     while ((qsize > 0) && (stats[id] == FINISHED)) {
@@ -66,6 +67,7 @@ int main(int argc, char *argv[]) {
     uint current_step, current_process_step, total_steps;
     uint elapsed_steps[N]; // elapsed time_units() of each individual process   
 
+    jobstat stats[N];
     // N R T
     for (int i = 0; i < N; i++) {
         if (IO) printf("N R T: ");
@@ -76,6 +78,7 @@ int main(int argc, char *argv[]) {
         remaining_times[i] = execution_times[i];
         PIDs[i] = -1; // arbitrarily initialize PID
         elapsed_steps[i] = 0;
+        stats[i] = UNAVAILABLE;
     }
 
     // ------------------
@@ -83,16 +86,18 @@ int main(int argc, char *argv[]) {
     // ------------------
     uint sorted_ids[N];
     id_sort(ready_times, sorted_ids, N);
+    if (DEBUG) printf("Sorted ids \n");
 
     // ------------------
     // Parameters
     // ------------------
- 
-    // uint current_time = 0;
-
     uint prev_id; // previous selected id
     uint id = 0; // current selected id
     int qsize = 0; // size of ready_queue (linked list)
+
+    int pipe_fds[2][N];
+
+    bool running;
 
     // get next job to arrive
     uint arrival_itr = 0;
@@ -105,21 +110,28 @@ int main(int argc, char *argv[]) {
     tmp = create_node(next_arrival);
     head = tmp;
     tail = tmp;
-    bool running;
-    running = false; // indicates previous job is still running; (used for SJF)
-    jobstat stats[N];
-    int pipe_fds[2][N];
 
+    running = false; // indicates previous job is still running; (used for SJF)
+    
     total_steps = reduce(add, execution_times, N); // number of time_units() to complete in total
     current_step = 0;
     uint finished_jobs = 0;
+    int tmp1, tmp2, tmp3, tmp4;
+    tmp1 = 0;
+    tmp2 = 0;
+    tmp3 = 0;
+    tmp4 = 0;
     
     while (finished_jobs < N) {
         // ------------------
         // Update Ready Queue
         // ------------------
         // Check if next job arrived, and if so, update the ready queue
-        while ((arrival_itr < N) && (ready_times[next_arrival] <= current_step)) {
+        tmp1 = ready_times[next_arrival];
+        if (DEBUG) printf("___________ \n");
+        if (DEBUG) printf("adding jobs\n");
+
+        while ((arrival_itr < N) && (tmp1 <= current_step)) {
             // add job to ready_queue
             append_value(&tail, next_arrival);
             qsize += 1;
@@ -128,6 +140,8 @@ int main(int argc, char *argv[]) {
             next_arrival = sorted_ids[arrival_itr];
         }
 
+        if (DEBUG) printf("selecting jobs \n");
+
         if (qsize > 0) {
             // ------------------
             // Select Job
@@ -135,6 +149,8 @@ int main(int argc, char *argv[]) {
             prev_id = id;
             id = select_job(&head, &tail, policy, current_step, remaining_times, running);
             
+
+            if (DEBUG) printf("running jobs \n");
             // ------------------
             // Run Job
             // ------------------
@@ -143,22 +159,28 @@ int main(int argc, char *argv[]) {
             running = true;
             time_unit();
 
+            if (DEBUG) printf("update params \n");
             // ------------------
             // Update Parameters
             // ------------------
             elapsed_steps[id] = update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
+            remaining_times[id] = remaining_times[id] - elapsed_steps[id];
+            // update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
+
             finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
             current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
         }
         current_step += 1;
 
+        if (DEBUG) printf("sync?\n");
+        if (DEBUG) printf("___________ \n");
         // ------------------
         // Sync Steps
         // ------------------
-        if (current_process_step > current_step) {
-            // sync main() steps with process steps
-            current_step = current_process_step;
-        }
+        // if (current_process_step > current_step) {
+        //     // sync main() steps with process steps
+        //     current_step = current_process_step;
+        // }
     }
 
     return 0;

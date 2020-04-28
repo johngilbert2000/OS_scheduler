@@ -1,7 +1,7 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-#define DEBUG 1
+#define DEBUG 0
 #define IO 1 // Turn this to 1 to display prompts for the user (running without input files)
 #define DIO 1 // another debug io
 #define NOT_LINUX // define this if not using linux
@@ -12,7 +12,8 @@
 #define LOW_PRIORITY_NICE 10
 #define HIGH_PRIORITY_NICE -10
 
-typedef unsigned int uint;
+// typedef unsigned int uint;
+typedef int uint;
 
 typedef int pid;
 
