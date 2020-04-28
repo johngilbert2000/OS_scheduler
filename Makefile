@@ -6,7 +6,7 @@ all: schedProgram
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^
 
-schedProgram: IO.o scheduler.o proc_step.o linkedlist.o useful_funcs.o main.c
+schedProgram: IO.o scheduler.o process.o linkedlist.o useful_funcs.o main.c
 	$(CC) $(CFLAGS) -o $@ $^
 	rm *.o
 	

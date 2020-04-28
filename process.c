@@ -171,6 +171,7 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
     uint process_step; // number of elapsed time_units for given process
     int waitstatus;
     waitstatus = 1; // initialized to silence warnings
+    process_step = 0;
 
     // Ensure pipe file descriptor is set to nonblocking
     fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
