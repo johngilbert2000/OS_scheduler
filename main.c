@@ -9,6 +9,7 @@
 #include "headerfiles/scheduler.h"
 #include "headerfiles/IO.h"
 #include "headerfiles/definitions.h"
+#include "headerfiles/proc_step.h"
 
 
 // TODO (short version)
@@ -53,21 +54,21 @@
 // #include <linux/ktime.h> // for getnstimeofday()
 
 // QUESTION: do I use fork to call time_unit(), with time_unit in a separate file?
-void time_unit(){
-    volatile unsigned long i; for(i=0;i<1000000UL;i++); 
-} 
+// void time_unit(){
+//     volatile unsigned long i; for(i=0;i<1000000UL;i++); 
+// } 
 
 // A note on implementation:
 // a linked list is used to hold ids of available jobs
 // the head of the linked list will always be the current job
 // (some policies will move new jobs to the head of the list when selecting them)
 
-long long get_time(){
-    // gets the clock time in nanoseconds (from time.h)
-    struct timespec t;
-    clock_gettime(CLOCK_REALTIME, &t);
-    return (t.tv_sec*(int)1e9 + t.tv_nsec);
-}
+// long long get_time(){
+//     // gets the clock time in nanoseconds (from time.h)
+//     struct timespec t;
+//     clock_gettime(CLOCK_REALTIME, &t);
+//     return (t.tv_sec*(int)1e9 + t.tv_nsec);
+// }
 
 int main(int argc, char *argv[]) {
 
@@ -136,8 +137,8 @@ int main(int argc, char *argv[]) {
     tail = tmp;
     bool running;
     running = false; // indicates previous job is still running; (used for SJF)
-    double actual_time;
-    uint temporary_id;
+    // double actual_time;
+    // uint temporary_id;
 
     
     while (total_remaining > 0) {

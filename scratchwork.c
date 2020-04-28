@@ -89,12 +89,12 @@ void disp_end(pid PID) {
   printf("[main: child process %d has ended]\n", PID);
 }
 
-void make_dmesg(pid PID, long double start_time, long double stop_time) {
-    printf("[Project 1] %d %Lf %Lf\n", PID, start_time, stop_time);
-    // %llu long long
-    // syscall(PRINTK, PID, start_time, stop_time);
-    return; 
-}
+// void make_dmesg(pid PID, long double start_time, long double stop_time) {
+//     printf("[Project 1] %d %Lf %Lf\n", PID, start_time, stop_time);
+//     // %llu long long
+//     // syscall(PRINTK, PID, start_time, stop_time);
+//     return; 
+// }
 
 long double get_time(){
     // gets the clock time in nanoseconds (from time.h)

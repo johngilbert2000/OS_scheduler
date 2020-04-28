@@ -7,6 +7,10 @@
 #include <sched.h>
 #include <fcntl.h> // for nonblocking file descriptor pipes
 #include "headerfiles/definitions.h"
+#include "headerfiles/IO.h"
+
+#include <signal.h> // for kill()
+#include <unistd.h> // for fork()
 
 // TODO:
 // - Test swap_priorities
@@ -39,11 +43,26 @@
 
 // typedef struct job_data job;
 
-void make_dmesg(pid PID, long long start_time, long long stop_time) {
-    printf("[Project 1] %d %llu %llu", PID, start_time, stop_time);
-    // syscall(PRINTK, PID, start_time, stop_time);
-    return; 
+// void make_dmesg(pid PID, long long start_time, long long stop_time) {
+//     printf("[Project 1] %d %llu %llu", PID, start_time, stop_time);
+//     // syscall(PRINTK, PID, start_time, stop_time);
+//     return; 
+// }
+
+void disp_main(pid id, jobstat x){
+  printf("[ P%d ]: %d  (main - process %d)\n", id, x, getpid());
 }
+
+void disp_parent(pid id, jobstat x){
+  printf("[ P%d ]: %d  (parent - process %d)\n", id, x, getpid());
+}
+
+void disp_child(pid id, jobstat x){
+  printf("[ P%d ]: %d  (child - process %d)\n", id, x, getpid());
+}
+
+
+
 
 long long get_time(){
     // gets the clock time in nanoseconds (from time.h)
@@ -130,11 +149,11 @@ pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time
     // running: true if previous job is running, else false
 
     if (running == true) {
-      if (true) printf("Stopping: %d\n", prevPID);
+      if (DIO) printf("Stopping: %d\n", prevPID);
       kill(prevPID, SIGSTOP);
     }
     if (*stat == STARTED) {
-      if (true) printf("Continue: %d\n", PID);
+      if (DIO) printf("Continue: %d\n", PID);
       kill(PID, SIGCONT);
     }
     else if (*stat == UNAVAILABLE) {
