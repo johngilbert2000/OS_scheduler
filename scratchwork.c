@@ -15,6 +15,8 @@
 #include <inttypes.h> // for printing pointers
 #include <sys/wait.h> // for waitpid?
 #include <fcntl.h>
+#include <sys/kernel.h>
+#include <sys/resource.h>
 // #include <pthread.h> // for pipes?
 
 
@@ -34,8 +36,10 @@
 #define MAXN 20
 #define STARTED 1
 #define FINISHED 2
-#define LOW_PRIORITY 90
-#define HIGH_PRIORITY 10
+// #define LOW_PRIORITY 90
+// #define HIGH_PRIORITY 10
+#define HIGH_PRIORITY -10
+#define LOW_PRIORITY 10
 
 
 // void time_unit() {
@@ -61,15 +65,15 @@
 // typedef struct job_data job;
 
 void disp_main(pid id, jobstat x){
-  printf("X[%d]: %d  (main - process %d)\n", id, x, getpid());
+  printf("[ P%d ]: %d  (main - process %d)\n", id, x, getpid());
 }
 
 void disp_parent(pid id, jobstat x){
-  printf("X[%d]: %d  (parent - process %d)\n", id, x, getpid());
+  printf("[ P%d ]: %d  (parent - process %d)\n", id, x, getpid());
 }
 
 void disp_child(pid id, jobstat x){
-  printf("X[%d]: %d  (child - process %d)\n", id, x, getpid());
+  printf("[ P%d ]: %d  (child - process %d)\n", id, x, getpid());
 }
 
 int id_input() {
@@ -82,6 +86,11 @@ void disp_end(pid PID) {
   printf("[main: child process %d has ended]\n", PID);
 }
 
+void make_dmesg(pid PID, long long start_time, long long stop_time) {
+    printf("[Project 1] %d %llu %llu\n", PID, start_time, stop_time);
+    // syscall(PRINTK, PID, start_time, stop_time);
+    return; 
+}
 
 long long get_time(){
     // gets the clock time in nanoseconds (from time.h)
@@ -100,17 +109,21 @@ void swap_priorities(pid oldPID, pid newPID) {
 
     old_param.sched_priority = LOW_PRIORITY;
     new_param.sched_priority = HIGH_PRIORITY;
-    sched_setscheduler(oldPID, SCHED_FIFO, &old_param);
-    sched_setscheduler(newPID, SCHED_FIFO, &new_param);
+    // sched_setscheduler(oldPID, SCHED_FIFO, &old_param);
+    // sched_setscheduler(newPID, SCHED_FIFO, &new_param);
+    setpriority(PRIO_PROCESS, newPID, HIGH_PRIORITY);
+    setpriority(PRIO_PROCESS, oldPID, LOW_PRIORITY);
+
 }
 
 void init_priority(pid PID) {
     struct sched_param param;
     param.sched_priority = HIGH_PRIORITY;
-    sched_setscheduler(PID, SCHED_FIFO, &param);
+    // sched_setscheduler(PID, SCHED_FIFO, &param);
+    setpriority(PRIO_PROCESS, PID, HIGH_PRIORITY);
 }
 
-pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
+pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
     // Create new process with fork(); (used in process_control)
  
     // stat: the status of the selected job
@@ -128,29 +141,38 @@ pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
         PID = getpid();
         localstatus = STARTED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
+        if (DIO) printf(" "); disp_child(id, localstatus);
+
         start_time = get_time();
 
         // Run process
         for (int i = 0; i < exec_time; i++) {
             time_unit();
+            if ((DIO) && (i % 10 == 0)) {
+              printf(" ");
+              disp_child(id, localstatus);
+            }
         }
 
         // Pass finished status into pipe and exit
         localstatus = FINISHED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
-        start_time = get_time();
-        make_dmesg(PID, start_time, stop_time);
+        if (DIO) printf("  "); disp_child(id, localstatus);
+
+        stop_time = get_time();
+        if (DIO != 1) make_dmesg(PID, start_time, stop_time);
         exit(EXIT_SUCCESS);
     }
     else { // PARENT PROCESS
         // Get start status from child process
         read(pipefd[0], &localstatus, sizeof(localstatus));
         *stat = localstatus;
+        if (DIO) disp_parent(id, localstatus);
     }
     return PID;
 }
 
-pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat pipefd[2], bool running) {
+pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time, int pipefd[2], bool running) {
     // Creates new process if stat indicates job has not started
     // Otherwise, switches to process with given PID 
     // from the previous process (prevPID)
@@ -163,7 +185,7 @@ pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat
     // running: true if previous job is running, else false
 
     if (*stat == UNAVAILABLE) {
-        PID = start_process(stat, exec_time, pipefd);
+        PID = start_process(id, stat, exec_time, pipefd);
     }
        if (running == true) {
         swap_priorities(prevPID, PID);
@@ -175,11 +197,75 @@ pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat
    return PID;
 }
 
-int main() {
-  jobstat j;
-  j = STARTED;
+pid update_status(int id, int waitstatus, pid PID, jobstat *stat, int *fd) {
 
-  disp_main(5, j);
+  // Ensure pipe file descriptor is set to nonblocking
+  fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+  fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+
+  if (waitstatus > 0) waitpid(PID, &waitstatus, WNOHANG);
+
+  if ((waitstatus == 0) && (*stat != FINISHED)) {
+    read(fd[0], stat, sizeof(int));
+  } 
+  if (DIO) disp_main(id, *stat);
+  return PID;
+}
+
+
+int main() {
+  jobstat j, j2;
+  int id2 = 1;
+  int id = 0;
+  j = UNAVAILABLE;
+  j2 = UNAVAILABLE;
+  int exec_time[MAXN], PIDs[MAXN];
+  exec_time[id] = 70;
+  exec_time[id2] = 70;
+  int waitstatus;
+  int waitstat2;
+
+  int pipe_ret;
+  int fd[2][MAXN];
+
+  // Ensure pipe file descriptor is set to nonblocking
+  fcntl(fd[0][id2], F_SETFL, fcntl(fd[0][id2], F_GETFL) | O_NONBLOCK);
+  fcntl(fd[1][id2], F_SETFL, fcntl(fd[0][id2], F_GETFL) | O_NONBLOCK);
+
+
+  
+
+  // Ensure pipe file descriptor is set to nonblocking
+  fcntl(fd[0][id], F_SETFL, fcntl(fd[0][id], F_GETFL) | O_NONBLOCK);
+  fcntl(fd[1][id], F_SETFL, fcntl(fd[0][id], F_GETFL) | O_NONBLOCK);
+
+  // Create pipe
+  pipe_ret = pipe(fd[id]);
+  if (pipe_ret == -1) { perror("pipe error"); exit(1); }
+
+  // Create pipe
+  pipe_ret = pipe(fd[id2]);
+  if (pipe_ret == -1) { perror("pipe error"); exit(1); }
+
+
+  if (DIO) disp_main(id, j);
+  PIDs[id] = start_process(id, &j, exec_time[id], fd[id]);
+  PIDs[id2] = start_process(id2, &j2, exec_time[id2], fd[id2]);
+
+  bool running = true;
+  PIDs[id2] = process_control(id2, &j2, PIDs[id2], PIDs[id], exec_time[id2], fd[id2], running);
+
+  // disp_main(id, j);
+  update_status(id, waitstatus, PIDs[id], &j, fd[id]);
+  update_status(id2, waitstat2, PIDs[id2], &j2, fd[id2]);
+
+  waitpid(PIDs[id], &waitstatus, 0);
+  update_status(id, waitstatus, PIDs[id], &j, fd[id]);
+  // if (DIO) disp_main(id, j);
+
+  waitpid(PIDs[id2], &waitstat2, 0);
+  update_status(id2, waitstat2, PIDs[id2], &j2, fd[id2]);
+ 
   return 0;
 
 
@@ -251,12 +337,12 @@ int main() {
 //   waitpid(PID[id], &status, WNOHANG);
 //   for (int i = 0; i < 7; i++) {
 //     time_unit();
-//     if (status > 0) waitpid(PID[id], &status, WNOHANG);
+    // if (status > 0) waitpid(PID[id], &status, WNOHANG);
 
-//     if ((status == 0) && (X[id] != FINISHED)) {
-//       read(fd[0], (X+id), sizeof(int));
-//     } 
-//     disp_main(id, X[id]);
+    // if ((status == 0) && (X[id] != FINISHED)) {
+    //   read(fd[0], (X+id), sizeof(int));
+    // } 
+    // disp_main(id, X[id]);
 //   }
 
 //   waitpid(PID[id], &status, 0); // don't end main until child ends
