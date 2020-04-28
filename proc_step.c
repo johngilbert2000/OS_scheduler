@@ -8,9 +8,6 @@
 #include <fcntl.h> // for nonblocking file descriptor pipes
 #include "headerfiles/definitions.h"
 
-#define LOW_PRIORITY 90
-#define HIGH_PRIORITY 10
-
 // TODO:
 // - Test swap_priorities
 // - use nice() values instead of sched_setscheduler in swap_priorities
@@ -59,23 +56,14 @@ void time_unit(){
     volatile unsigned long i; for(i=0;i<1000000UL;i++); 
 }
 
-void swap_priorities(pid oldPID, pid newPID) {
-    // TODO: use nice() values instead?
-    struct sched_param old_param, new_param;
+#ifdef NOT_LINUX
+  // not linux
+  int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param){
+    return -1;
+  }
+#endif
 
-    old_param.sched_priority = LOW_PRIORITY;
-    new_param.sched_priority = HIGH_PRIORITY;
-    sched_setscheduler(oldPID, SCHED_FIFO, &old_param);
-    sched_setscheduler(newPID, SCHED_FIFO, &new_param);
-}
-
-void init_priority(pid PID) {
-    struct sched_param param;
-    param.sched_priority = HIGH_PRIORITY;
-    sched_setscheduler(PID, SCHED_FIFO, &param);
-}
-
-pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
+pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
     // Create new process with fork(); (used in process_control)
  
     // stat: the status of the selected job
@@ -84,7 +72,8 @@ pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
     pid PID;
     jobstat localstatus;
     localstatus = *stat;
-    long long start_time, stop_time;
+    long double start_time, stop_time;
+
 
     PID = fork();
     if (PID == 0) { // CHILD PROCESS
@@ -92,29 +81,43 @@ pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
         PID = getpid();
         localstatus = STARTED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
+        if (DIO) {printf(" "); disp_child(id, localstatus);}
+
         start_time = get_time();
+
+        // Set scheduler to other
+        struct sched_param param;
+        param.sched_priority = 0;
+        sched_setscheduler(PID, SCHED_OTHER, &param);
 
         // Run process
         for (int i = 0; i < exec_time; i++) {
             time_unit();
+            if ((DIO) && (i % 10 == 0)) {
+              printf(" ");
+              if (DIO) {disp_child(id, localstatus);}
+            }
         }
 
         // Pass finished status into pipe and exit
         localstatus = FINISHED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
-        start_time = get_time();
-        make_dmesg(PID, start_time, stop_time);
+        if (DIO) { printf("  "); disp_child(id, localstatus);}
+
+        stop_time = get_time();
+        if (DIO != 1) make_dmesg(PID, start_time, stop_time);
         exit(EXIT_SUCCESS);
     }
     else { // PARENT PROCESS
         // Get start status from child process
         read(pipefd[0], &localstatus, sizeof(localstatus));
         *stat = localstatus;
+        if (DIO) disp_parent(id, localstatus);
     }
     return PID;
 }
 
-pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat pipefd[2], bool running) {
+pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time, int pipefd[2], bool running) {
     // Creates new process if stat indicates job has not started
     // Otherwise, switches to process with given PID 
     // from the previous process (prevPID)
@@ -126,18 +129,125 @@ pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat
     // pipefd: file descriptor for piping selected job status from child process
     // running: true if previous job is running, else false
 
-    if (*stat == UNAVAILABLE) {
-        PID = start_process(stat, exec_time, pipefd);
+    if (running == true) {
+      if (true) printf("Stopping: %d\n", prevPID);
+      kill(prevPID, SIGSTOP);
     }
-       if (running == true) {
-        swap_priorities(prevPID, PID);
+    if (*stat == STARTED) {
+      if (true) printf("Continue: %d\n", PID);
+      kill(PID, SIGCONT);
     }
-    else {
-        init_priority(PID);
+    else if (*stat == UNAVAILABLE) {
+      PID = start_process(id, stat, exec_time, pipefd);
     }
-
+    
    return PID;
 }
+
+pid update_status(int id, int waitstatus, pid PID, jobstat *stat, int *fd) {
+
+  // Ensure pipe file descriptor is set to nonblocking
+  fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+  fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+
+  if (waitstatus > 0) waitpid(PID, &waitstatus, WNOHANG);
+
+  if ((waitstatus == 0) && (*stat != FINISHED)) {
+    read(fd[0], stat, sizeof(*stat));
+  } 
+  if (DIO) disp_main(id, *stat);
+  return PID;
+}
+
+
+
+
+
+
+
+// ---------------------------------------------------
+// old stuff
+// ---------------------------------------------------
+
+// void swap_priorities(pid oldPID, pid newPID) {
+//     // TODO: use nice() values instead?
+//     struct sched_param old_param, new_param;
+
+//     old_param.sched_priority = LOW_PRIORITY;
+//     new_param.sched_priority = HIGH_PRIORITY;
+//     sched_setscheduler(oldPID, SCHED_FIFO, &old_param);
+//     sched_setscheduler(newPID, SCHED_FIFO, &new_param);
+// }
+
+// void init_priority(pid PID) {
+//     struct sched_param param;
+//     param.sched_priority = HIGH_PRIORITY;
+//     sched_setscheduler(PID, SCHED_FIFO, &param);
+// }
+
+// pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
+//     // Create new process with fork(); (used in process_control)
+ 
+//     // stat: the status of the selected job
+//     // exec_time: execution time of selected job
+//     // pipefd: file descriptor for piping selected job status from child process
+//     pid PID;
+//     jobstat localstatus;
+//     localstatus = *stat;
+//     long long start_time, stop_time;
+
+//     PID = fork();
+//     if (PID == 0) { // CHILD PROCESS
+//         // Pass start status into pipe
+//         PID = getpid();
+//         localstatus = STARTED;
+//         write(pipefd[1], &localstatus, sizeof(localstatus));
+//         start_time = get_time();
+
+//         // Run process
+//         for (int i = 0; i < exec_time; i++) {
+//             time_unit();
+//         }
+
+//         // Pass finished status into pipe and exit
+//         localstatus = FINISHED;
+//         write(pipefd[1], &localstatus, sizeof(localstatus));
+//         start_time = get_time();
+//         make_dmesg(PID, start_time, stop_time);
+//         exit(EXIT_SUCCESS);
+//     }
+//     else { // PARENT PROCESS
+//         // Get start status from child process
+//         read(pipefd[0], &localstatus, sizeof(localstatus));
+//         *stat = localstatus;
+//     }
+//     return PID;
+// }
+
+// pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat pipefd[2], bool running) {
+//     // Creates new process if stat indicates job has not started
+//     // Otherwise, switches to process with given PID 
+//     // from the previous process (prevPID)
+
+//     // stat: the status of the selected job
+//     // PID: PID of selected job, if it exists
+//     // prevPID: PID of previous job, if there was one
+//     // exec_time: execution time of selected job
+//     // pipefd: file descriptor for piping selected job status from child process
+//     // running: true if previous job is running, else false
+
+//     if (*stat == UNAVAILABLE) {
+//         PID = start_process(stat, exec_time, pipefd);
+//     }
+//        if (running == true) {
+//         swap_priorities(prevPID, PID);
+//     }
+//     else {
+//         init_priority(PID);
+//     }
+
+//    return PID;
+// }
 
 
 

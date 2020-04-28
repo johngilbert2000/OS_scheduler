@@ -29,7 +29,7 @@
 #include <signal.h> // for kill()
 
 #define DIO 1 // debug io
-
+#define NOT_LINUX 
 
 // note:
 // - kill() with SIGSTOP --> pause process
@@ -89,17 +89,19 @@ void disp_end(pid PID) {
   printf("[main: child process %d has ended]\n", PID);
 }
 
-void make_dmesg(pid PID, long long start_time, long long stop_time) {
-    printf("[Project 1] %d %llu %llu\n", PID, start_time, stop_time);
+void make_dmesg(pid PID, long double start_time, long double stop_time) {
+    printf("[Project 1] %d %Lf %Lf\n", PID, start_time, stop_time);
+    // %llu long long
     // syscall(PRINTK, PID, start_time, stop_time);
     return; 
 }
 
-long long get_time(){
+long double get_time(){
     // gets the clock time in nanoseconds (from time.h)
     struct timespec t;
     clock_gettime(CLOCK_REALTIME, &t);
-    return (t.tv_sec*(int)1e9 + t.tv_nsec);
+    // return (t.tv_sec*(int)1e9 + t.tv_nsec);
+    return (t.tv_sec + (( (long double)t.tv_nsec )/1e9));
 }
 
 void time_unit(){
@@ -130,6 +132,14 @@ void init_priority(pid PID) {
     kill(PID, SIGCONT);
 }
 
+
+#ifdef NOT_LINUX
+  // not linux
+  int sched_setscheduler(pid_t pid, int policy, const struct sched_param *param){
+    return -1;
+  }
+#endif
+
 pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
     // Create new process with fork(); (used in process_control)
  
@@ -139,7 +149,7 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
     pid PID;
     jobstat localstatus;
     localstatus = *stat;
-    long long start_time, stop_time;
+    long double start_time, stop_time;
 
 
     PID = fork();
@@ -148,23 +158,28 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
         PID = getpid();
         localstatus = STARTED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
-        if (DIO) printf(" "); disp_child(id, localstatus);
+        if (DIO) {printf(" "); disp_child(id, localstatus);}
 
         start_time = get_time();
+
+        // Set scheduler to other
+        struct sched_param param;
+        param.sched_priority = 0;
+        sched_setscheduler(PID, SCHED_OTHER, &param);
 
         // Run process
         for (int i = 0; i < exec_time; i++) {
             time_unit();
             if ((DIO) && (i % 10 == 0)) {
               printf(" ");
-              disp_child(id, localstatus);
+              if (DIO) {disp_child(id, localstatus);}
             }
         }
 
         // Pass finished status into pipe and exit
         localstatus = FINISHED;
         write(pipefd[1], &localstatus, sizeof(localstatus));
-        if (DIO) printf("  "); disp_child(id, localstatus);
+        if (DIO) { printf("  "); disp_child(id, localstatus);}
 
         stop_time = get_time();
         if (DIO != 1) make_dmesg(PID, start_time, stop_time);
@@ -192,11 +207,11 @@ pid process_control(uint id, jobstat *stat, pid PID, pid prevPID, uint exec_time
     // running: true if previous job is running, else false
 
     if (running == true) {
-      printf("Stopping: %d\n", prevPID);
+      if (true) printf("Stopping: %d\n", prevPID);
       kill(prevPID, SIGSTOP);
     }
     if (*stat == STARTED) {
-      printf("Continue: %d\n", PID);
+      if (true) printf("Continue: %d\n", PID);
       kill(PID, SIGCONT);
     }
     else if (*stat == UNAVAILABLE) {
@@ -225,7 +240,7 @@ pid update_status(int id, int waitstatus, pid PID, jobstat *stat, int *fd) {
   if (waitstatus > 0) waitpid(PID, &waitstatus, WNOHANG);
 
   if ((waitstatus == 0) && (*stat != FINISHED)) {
-    read(fd[0], stat, sizeof(int));
+    read(fd[0], stat, sizeof(*stat));
   } 
   if (DIO) disp_main(id, *stat);
   return PID;
