@@ -8,6 +8,7 @@
 #include <fcntl.h> // for nonblocking file descriptor pipes
 #include "headerfiles/definitions.h"
 #include "headerfiles/IO.h"
+#include <sys/syscall.h>
 
 #include <signal.h> // for kill()
 #include <unistd.h> // for fork()
@@ -69,6 +70,9 @@ pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time) {
         param.sched_priority = 0;
         sched_setscheduler(PID, SCHED_OTHER, &param);
 
+        #ifdef LINUX
+        syscall(436,x);
+        #else
         // Run process
         for (int i = 0; i < exec_time; i++) {
             time_unit();
@@ -81,12 +85,12 @@ pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time) {
         // localstatus = FINISHED;
         // write(pipefd[1], &localstatus, sizeof(localstatus));
         // write(pipe_write, &elapsed_local, sizeof(elapsed_local));
-
+        
         stop_time = get_time();
-
+        
         // Pass clock timer information to kernel
         make_dmesg(PID, start_time, stop_time);
-
+        #endif
         // sleep(1); // ensure dmesg is sent
         exit(EXIT_SUCCESS);
     }
@@ -131,7 +135,7 @@ pid process_control(maybe_int id, jobstat *stat, pid PID, \
       PID = start_process(id, stat, exec_time);
     }
     else {
-      if (DEBUG) printf("<<<< PROCESS CONTROL CONFUSION >>>>");
+      // if (DEBUG) printf("<<<< PROCESS CONTROL CONFUSION >>>>");
     }
     
    return PID;

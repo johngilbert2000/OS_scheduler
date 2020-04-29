@@ -14,6 +14,39 @@ More details can be found in `report.pdf`
 
 ### Compiling and Running
 
+#### Compiling the Custom Kernel
+
+This code requires Linux Kernel 5.4.35. Download the kernel source on a Linux machine with:
+
+```bash
+wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.35.tar.xz
+tar xf linux-5.4.35.tar.xz
+cd linux-5.4.35/
+```
+
+Once you have the kernel source, you likely want to build with your existing kernel config:
+
+```bash
+make mrproper
+cp /boot/config-$(uname -r) .config
+yes '' | make oldconfig
+```
+
+Now copy in the files required for the custom system call (my project files are in `~/OS_scheduler` but this may vary):
+
+```bash\
+cp ~/OS_scheduler/kernel_files/syscall_32.tbl arch/x86/entry/syscalls/syscall_32.tbl
+cp ~/OS_scheduler/kernel_files/syscall_64.tbl arch/x86/entry/syscalls/syscall_64.tbl
+cp ~/OS_scheduler/kernel_files/unistd.h include/uapi/asm-generic/unistd.h
+cp ~/OS_scheduler/kernel_files/syscalls.h include/linux/syscalls.h
+cp ~/OS_scheduler/kernel_files/sys_ni.c kernel/sys_ni.c
+cp -r ~/OS_scheduler/kernel_files/dummy_proc dummy_proc
+cp ~/OS_scheduler/kernel_files/Makefile Makefile
+```
+
+
+#### Compiling the App
+
 Compile and run with the following command (*Python required*):
 ```
 make runall
@@ -44,7 +77,6 @@ To remove all output files as well (*Python required*):
 ```
 make cleanall
 ```
-
 
 <hr>
 

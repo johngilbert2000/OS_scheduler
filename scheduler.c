@@ -25,7 +25,7 @@ int get_pos_min(int arr[], int N, int qsize) {
     // minval = getmax(arr, N);
     minval = qsize; // initialize to largest value
     for (int i = 0; i < N; i++) {
-        if (arr[i] > 0) {
+        if (arr[i] >= 0) {
             if (arr[i] < minval) minval = arr[i];
         }
     }
@@ -106,7 +106,7 @@ int select_process(int prev_id, int ready_queue[], int remaining_times[], \
 
             // maxval = getmax(ready_queue, N);
             for (int i = 0; i< N; i++) {
-                if (ready_queue[i] > 0) {
+                if (ready_queue[i] >= 0) {
                     ready_queue[i] += 1 % qsize; // shift the ready queue
                 }
             }

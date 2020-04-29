@@ -223,6 +223,7 @@ int main(int argc, char *argv[]) {
             elapsed_steps[id] += 1;
         }
         current_step += 1;
+        sleep(1);
 
 
         if (DEBUG) printf("sync?\n");
