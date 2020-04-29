@@ -13,7 +13,7 @@
 #define HIGH_PRIORITY_NICE -10
 
 // typedef unsigned int uint;
-typedef int uint;
+typedef int maybe_int;
 
 typedef int pid;
 

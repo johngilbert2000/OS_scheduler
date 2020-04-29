@@ -43,7 +43,7 @@ void time_unit(){
   }
 #endif
 
-pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
+pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2]) {
     // Create new process with fork(); (used in process_control)
  
     // stat: the status of the selected job
@@ -54,7 +54,7 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
     localstatus = *stat;
     long double start_time, stop_time;
 
-    uint elapsed_local;
+    maybe_int elapsed_local;
     elapsed_local = 0; // internal time_unit clock
 
     PID = fork();
@@ -102,8 +102,8 @@ pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
     return PID;
 }
 
-pid process_control(uint id, jobstat *stat, pid PID, \
-  pid prevPID, uint exec_time, int pipefd[2], bool running) {
+pid process_control(maybe_int id, jobstat *stat, pid PID, \
+  pid prevPID, maybe_int exec_time, int pipefd[2], bool running) {
     // Creates new process if stat indicates job has not started
     // Otherwise, switches to process with given PID 
     // from the previous process (prevPID)
@@ -133,8 +133,8 @@ pid process_control(uint id, jobstat *stat, pid PID, \
    return PID;
 }
 
-uint update_status(int id, pid PID, jobstat *stat, int *fd) {
-    uint process_step; // number of elapsed time_units for given process
+maybe_int update_status(int id, pid PID, jobstat *stat, int *fd) {
+    maybe_int process_step; // number of elapsed time_units for given process
     int waitstatus;
     waitstatus = 1; // initialized to silence warnings
     process_step = 0;
@@ -187,7 +187,7 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 //     sched_setscheduler(PID, SCHED_FIFO, &param);
 // }
 
-// pid start_process(jobstat *stat, uint exec_time, jobstat pipefd[2]) {
+// pid start_process(jobstat *stat, maybe_int exec_time, jobstat pipefd[2]) {
 //     // Create new process with fork(); (used in process_control)
  
 //     // stat: the status of the selected job
@@ -226,7 +226,7 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 //     return PID;
 // }
 
-// pid process_control(jobstat *stat, pid PID, pid prevPID, uint exec_time, jobstat pipefd[2], bool running) {
+// pid process_control(jobstat *stat, pid PID, pid prevPID, maybe_int exec_time, jobstat pipefd[2], bool running) {
 //     // Creates new process if stat indicates job has not started
 //     // Otherwise, switches to process with given PID 
 //     // from the previous process (prevPID)
@@ -277,7 +277,7 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 // }
 
 
-// pid start_process(uint **remain_time){
+// pid start_process(maybe_int **remain_time){
 //     pid PID;
 //     PID = fork();
 //     if (PID == 0) {
@@ -286,8 +286,8 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 
 //         start_time = get_time();
 //         PID = getpid();
-//         uint exec_time = **remain_time;
-//         for (uint i = 0; i < exec_time; i++) {
+//         maybe_int exec_time = **remain_time;
+//         for (maybe_int i = 0; i < exec_time; i++) {
 //             time_unit();
 //             if (**remain_time > 0) **remain_time -= 1;
 //         }
@@ -305,7 +305,7 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 //     sched_setscheduler(newPID); // use process with given PID
 // }
 
-// pid change_n_start(pid oldPID, uint **remain_time) {
+// pid change_n_start(pid oldPID, maybe_int **remain_time) {
 //     pid newPID;
 //     newPID = start_process(remain_time);
 //     sched_yield(oldPID);
@@ -316,7 +316,7 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 
 
 
-// pid start_process(uint id, jobstat *stat, uint exec_time, int pipefd[2]) {
+// pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2]) {
 //     // Create new process with fork(); (used in process_control)
  
 //     // stat: the status of the selected job
@@ -399,8 +399,8 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 // struct job_data {
 //   pid PID;
 //   char *name;
-//   uint ready_time;
-//   uint execution_time;
+//   maybe_int ready_time;
+//   maybe_int execution_time;
 //   enum job_status;
 // };
 

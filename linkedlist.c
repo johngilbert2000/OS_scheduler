@@ -6,14 +6,14 @@
 
 
 // struct linked {
-//     uint val;
+//     maybe_int val;
 //     struct linked *next;
 //     struct linked *prev;
 // };
 
 // typedef struct linked node;
 
-node *create_node(uint val){
+node *create_node(maybe_int val){
     node *res = malloc(sizeof(node));
     res->val = val;
     res->next = NULL;
@@ -31,7 +31,7 @@ void insert_node(node *previous_node, node *new_node){
     previous_node->next = new_node;
 }
 
-void append_value(node **tail, uint val) {
+void append_value(node **tail, maybe_int val) {
     // appends node with given value after tail
     // sets the pointer tail = new_node, if tail was the end of the list
     // Example: append_value(&tail, 2)  (adds node, and now tail->val == 2)
@@ -43,7 +43,7 @@ void append_value(node **tail, uint val) {
     }
 }
 
-void insert_value(node *previous_node, uint val){
+void insert_value(node *previous_node, maybe_int val){
     // Inserts node with given value after previous_node
     insert_node(previous_node, create_node(val));
 }
@@ -108,7 +108,7 @@ void remove_tail(node **tail){
     remove_node(old_tail);
 }
 
-node *lookup(node *head, uint val) {
+node *lookup(node *head, maybe_int val) {
     // Obtains the first node with the given value
     node *tmp = head;
     while (tmp != NULL) {
@@ -139,7 +139,7 @@ void shift_right(node **head, node **tail){
 }
 
 void swap_nodes(node **node1, node **node2){
-    uint tmp_val;
+    maybe_int tmp_val;
     tmp_val = (*node2)->val;
     (*node2)->val = (*node1)->val;
     (*node1)->val = tmp_val;
@@ -175,7 +175,7 @@ void print_node(node *any_node){
 
 // TO EXPORT: create_node, append_value, lookup, remove_head, remove_tail, remove_node
 
-// uint main() {
+// maybe_int main() {
 //     node *head;
 //     node *tmp;
 //     node *tail;

@@ -3,16 +3,16 @@
 
 #include "definitions.h"
 
-extern uint reduce(uint (*f)(uint,uint), uint nums[], uint length);
-extern uint get_sort_idx(uint nums[], uint left, uint right, uint order);
-extern void quicksort_recursion(uint nums[], uint left, uint right, uint order);
-extern void quicksort(uint nums[], uint results[], uint length);
-extern void id_sort(uint inputs[], uint ids[], uint length);
-extern uint add(uint a, uint b);
-// extern uint get_gcd(uint a, uint b);
-// extern uint get_lcm(uint a, uint b);
-// extern uint LCM(uint nums[], uint length);
-// extern void zeros(uint results[], uint length);
-// extern void repeat(uint x, uint results[]);
+extern maybe_int reduce(maybe_int (*f)(maybe_int, maybe_int), maybe_int nums[], maybe_int length);
+extern maybe_int get_sort_idx(maybe_int nums[], maybe_int left, maybe_int right, maybe_int order);
+extern void quicksort_recursion(maybe_int nums[], maybe_int left, maybe_int right, maybe_int order);
+extern void quicksort(maybe_int nums[], maybe_int results[], maybe_int length);
+extern void id_sort(maybe_int inputs[], maybe_int ids[], maybe_int length);
+extern maybe_int add(maybe_int a, maybe_int b);
+// extern maybe_int get_gcd(maybe_int a, maybe_int b);
+// extern maybe_int get_lcm(maybe_int a, maybe_int b);
+// extern maybe_int LCM(maybe_int nums[], maybe_int length);
+// extern void zeros(maybe_int results[], maybe_int length);
+// extern void repeat(maybe_int x, maybe_int results[]);
 
 #endif

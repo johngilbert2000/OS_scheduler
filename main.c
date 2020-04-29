@@ -20,9 +20,9 @@
 // - get_time() syscall (in proc_step)
 
 
-uint clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
-    uint num_finished;
-    uint id;
+maybe_int clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
+    maybe_int num_finished;
+    maybe_int id;
     num_finished = 0;
     if (DEBUG) { printf("Cleaning the queue \n"); }
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     policy = get_policy();
 
     // N
-    uint N;
+    maybe_int N;
     if (IO) printf("Number processes: ");
     scanf("%u", &N);
 
@@ -62,13 +62,13 @@ int main(int argc, char *argv[]) {
     // --------------
 
     char names[N][32];
-    uint ready_times[N];
-    uint execution_times[N];
-    uint remaining_times[N];
+    maybe_int ready_times[N];
+    maybe_int execution_times[N];
+    maybe_int remaining_times[N];
     
     pid PIDs[N];
-    uint current_step, current_process_step, total_steps;
-    uint elapsed_steps[N]; // elapsed time_units() of each individual process   
+    maybe_int current_step, current_process_step, total_steps;
+    maybe_int elapsed_steps[N]; // elapsed time_units() of each individual process   
 
     jobstat stats[N];
     // N R T
@@ -109,15 +109,15 @@ int main(int argc, char *argv[]) {
     // ------------------
     // Sort Ready Times
     // ------------------
-    uint sorted_ids[N];
+    maybe_int sorted_ids[N];
     id_sort(ready_times, sorted_ids, N);
     if (DEBUG) printf("Sorted ids \n");
 
     // ------------------
     // Parameters
     // ------------------
-    uint prev_id; // previous selected id
-    uint id = 0; // current selected id
+    maybe_int prev_id; // previous selected id
+    maybe_int id = 0; // current selected id
     int qsize = 0; // size of ready_queue (linked list)
 
     int pipe_fds[2][N];
@@ -125,8 +125,8 @@ int main(int argc, char *argv[]) {
     bool running;
 
     // get next job to arrive
-    uint arrival_itr = 0;
-    uint next_arrival; 
+    maybe_int arrival_itr = 0;
+    maybe_int next_arrival; 
     next_arrival = sorted_ids[arrival_itr];
 
     node *head;
@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
     
     total_steps = reduce(add, execution_times, N); // number of time_units() to complete in total
     current_step = 0;
-    uint finished_jobs = 0;
+    maybe_int finished_jobs = 0;
     int tmp1, tmp2, tmp3, tmp4;
     tmp1 = 0;
     tmp2 = 0;
@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
 
     // run process
         // if (running == false) {
-        //     uint *rtime_ptr = NULL; 
+        //     maybe_int *rtime_ptr = NULL; 
         //     *rtime_ptr = &remaining_times[id]; 
         //     PIDs[id] = start_process(&rtime_ptr);
         // }
