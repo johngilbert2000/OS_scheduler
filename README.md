@@ -8,7 +8,17 @@ A user space scheduler with the following policies, designed to run on Linux:
 - SJF (Shortest Job First)
 - PSJF (Preemptive Shortest Job First)
 
-More details can be found in `report.pdf`
+**More details can be found in `report.pdf`**
+
+<hr>
+
+### Demo
+
+There is a bug in my code, and I have worked long and hard to find it, but with little success. The result is that my code can run for small numbers, but it segfaults for larger ones. 70+ commits, hours and hours of work, I tried my best.
+
+Here is a video demonstration:
+
+[![Demo video](https://github.com/johngilbert2000/OS_scheduler/blob/master/demo/demo_vid_img.png)](https://www.youtube.com/watch?v=ljkfqwqAUFs)
 
 <hr>
 
