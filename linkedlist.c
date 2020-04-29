@@ -5,13 +5,7 @@
 #include "headerfiles/definitions.h"
 
 
-// struct linked {
-//     int val;
-//     struct linked *next;
-//     struct linked *prev;
-// };
-
-// typedef struct linked node;
+#ifdef DOUBLE_LINKED
 
 node *create_node(int val){
     node *res = malloc(sizeof(node));
@@ -172,6 +166,136 @@ void print_node(node *any_node){
     printf("%d", any_node->val);
     printf("\n");
 }
+
+#else
+
+
+node *create_node(int val){
+    node *res = malloc(sizeof(node));
+    res->val = val;
+    res->next = NULL;
+    return res;
+}
+
+void insert_node(node *previous_node, node *new_node){
+    // Inserts a new node after previous node
+    new_node->next = previous_node->next;
+    previous_node->next = new_node;
+}
+
+void append_value(node **tail, int val) {
+    // appends node with given value after tail
+    // sets the pointer tail = new_node, if tail was the end of the list
+    // Example: append_value(&tail, 2)  (adds node, and now tail->val == 2)
+    node *tmp;
+    tmp = create_node(val);
+    insert_node(*tail, tmp);
+    if (tmp->next == NULL) {
+        *tail = tmp;
+    }
+}
+
+void insert_value(node *previous_node, int val){
+    // Inserts node with given value after previous_node
+    insert_node(previous_node, create_node(val));
+}
+
+node *insert_head(node **head, node *new_node){
+    // Inserts a new node at the head of the linked list
+    new_node->next = *head;
+    *head = new_node;
+    return new_node;
+}
+
+void remove_node(node *old_node){
+    // Removes node from linked list
+    old_node->next = NULL;
+    // free(old_node);
+}
+
+// node *get_tail(node *any_node){
+//     node *tail;
+//     tail = any_node;
+//     while (any_node->next != NULL) {
+//         tail = any_node->next;
+//         any_node = any_node->next;
+//     }
+//     return tail;
+// }
+
+void remove_head(node **head){
+    // Removes head from linked list, and sets *head equal to next node in list
+    // Example: remove_head(&head);
+    node *old_head;
+    old_head = *head;
+    if (old_head->next != NULL) *head = old_head->next;
+    remove_node(old_head);
+}
+
+
+node *lookup(node *head, int val) {
+    // Obtains the first node with the given value
+    node *tmp = head;
+    while (tmp != NULL) {
+        if (tmp->val == val) return tmp;
+        tmp = tmp->next;
+    }
+    return NULL;
+}
+
+void move_ahead(node **head, node *any_node){
+    // moves a given node to head of list
+    node *tmp;
+    tmp = any_node;
+    insert_head(head, tmp);
+    remove_node(any_node);
+}
+
+void shift_left(node **head, node **tail) {
+    // Shifts the linked list left
+    append_value(tail, (*head)->val);
+    remove_head(head);
+}
+
+void swap_nodes(node **node1, node **node2){
+    int tmp_val;
+    tmp_val = (*node2)->val;
+    (*node2)->val = (*node1)->val;
+    (*node1)->val = tmp_val;
+}
+
+// void print_list(node *head){
+//     node *tmp = head;
+//     printf("(");
+//     while (tmp->next != NULL) {
+//         printf("%d, ", tmp->val);
+//         tmp = tmp->next;
+//     }
+//     if (tmp != NULL) printf("%d", tmp->val);
+//     printf(")\n");
+// }
+
+
+// void print_node(node *any_node){
+//     printf("%d", any_node->val);
+//     printf("\n");
+// }
+
+
+
+#endif
+
+
+
+
+
+
+
+
+// ------------------------------------------
+// Used to test linked list functions
+// ------------------------------------------
+
 
 // TO EXPORT: create_node, append_value, lookup, remove_head, remove_tail, remove_node
 

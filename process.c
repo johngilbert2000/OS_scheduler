@@ -30,7 +30,7 @@ long long get_time(){
     // gets the clock time in nanoseconds (from time.h)
     struct timespec t;
     clock_gettime(CLOCK_REALTIME, &t);
-    return (t.tv_sec*(int)1e9 + t.tv_nsec);
+    return (t.tv_sec + t.tv_nsec);
 }
 
 void time_unit(){
@@ -44,7 +44,7 @@ void time_unit(){
   }
 #endif
 
-pid start_process(int id, jobstat *stat, int exec_time) {
+pid start_process(int id, jobstat *stat, int exec_time, char names[MAXN][NAMESIZE]) {
     // Create new process with fork(); (used in process_control)pipefd[2]
  
     // stat: the status of the selected job
@@ -101,6 +101,9 @@ pid start_process(int id, jobstat *stat, int exec_time) {
 
         // read(pipefd[0], &elapsed_local, sizeof(elapsed_local));
         // *elapsed = elapsed_local;
+        printf("%s", names[id]);
+        printf(" %d\n",PID);
+
         *stat = STARTED;
         if (DEBUG) disp_parent(id, localstatus);
     }
@@ -108,7 +111,7 @@ pid start_process(int id, jobstat *stat, int exec_time) {
 }
 
 pid process_control(int id, jobstat *stat, pid PID, \
-  pid prevPID, int exec_time, bool running) {
+  pid prevPID, int exec_time, bool running, char names[MAXN][NAMESIZE]) {
     // Creates new process if stat indicates job has not started
     // Otherwise, switches to process with given PID 
     // from the previous process (prevPID)pipefd[2]
@@ -132,7 +135,7 @@ pid process_control(int id, jobstat *stat, pid PID, \
       kill(PID, SIGCONT);
     }
     else if (*stat == UNAVAILABLE) {
-      PID = start_process(id, stat, exec_time);
+      PID = start_process(id, stat, exec_time, names);
     }
     else {
       // if (DEBUG) printf("<<<< PROCESS CONTROL CONFUSION >>>>");

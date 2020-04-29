@@ -2,7 +2,7 @@
 #define LINKEDLIST_H
 // create_node, append_value, lookup, remove_head, remove_tail, remove_node
 #include "definitions.h"
-
+#ifdef DOUBLE_LINKED
 extern node *create_node(int val);
 extern void insert_node(node *previous_node, node *new_node);
 extern void append_value(node **tail, int val);
@@ -21,4 +21,16 @@ extern void move_ahead(node **head, node *any_node);
 extern void shift_left(node **head, node **tail);
 extern void shift_right(node **head, node **tail);
 extern void swap_nodes(node **node1, node **node2);
+#else
+extern void remove_head(node **head);
+extern node *create_node(int val);
+extern void move_ahead(node **head, node *any_node);
+extern void shift_left(node **head, node **tail);
+extern void remove_node(node *old_node);
+extern node *insert_head(node **head, node *new_node);
+extern void append_value(node **tail, int val);
+
+extern node *lookup(node *head, int val);
+#endif
+
 #endif

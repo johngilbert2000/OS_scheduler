@@ -13,17 +13,11 @@
 #include "headerfiles/definitions.h"
 #include "headerfiles/process.h"
 
-#define USE_LINKED_LIST 1;
-#define USE_ARRAYS 0;
 
-
-// - optimize PSJF, SJF (4 ready queues instead of 1)
-
-// - dmesg syscall
-// - get_time() syscall (in proc_step)
 
 
 int clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
+    // For linked lists: cleans out the queue of available jobs
     int num_finished;
     int id;
     num_finished = 0;
@@ -41,13 +35,14 @@ int clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], b
     return num_finished;
 }
 
+
 int main(int argc, char *argv[]) {
 
     enum policy_type policy; 
 
-    // -------------
+    // ---------------------------
     // Get Policy
-    // -------------
+    // ---------------------------
     policy = get_policy();
 
     // N
@@ -58,60 +53,41 @@ int main(int argc, char *argv[]) {
     int total_remaining;
     total_remaining = N; // number of processes left to finish
 
-    // --------------
-    // Input Stuff
-    // --------------
+    // ----------------------------
+    // Input and Initialize
+    // ----------------------------
 
-    char names[MAXN][32];
-    int ready_times[MAXN];
-    int execution_times[MAXN];
-    int remaining_times[MAXN];
+    char names[MAXN][NAMESIZE];
+    int ready_times[MAXN], execution_times[MAXN], remaining_times[MAXN], ready_queue[MAXN], elapsed_steps[MAXN];
     
     pid PIDs[MAXN];
     int current_step, current_process_step, total_steps;
-    int elapsed_steps[MAXN]; // elapsed time_units() of each individual process   
 
     jobstat stats[MAXN];
+
     // N R T
-    for (int i = 0; i < N; i++) { // because reasons
+    for (int i = 0; i < N; i++) { 
         if (IO) printf("N R T: ");
         scanf("%s", names[i]); 
         scanf("%u", &ready_times[i]);
         scanf("%u", &execution_times[i]);
 
         remaining_times[i] = execution_times[i];
-        PIDs[i] = -42; // arbitrarily initialize PID
+        PIDs[i] = -8; // arbitrarily initialize PID
         elapsed_steps[i] = 0;
         stats[i] = UNAVAILABLE;
+        ready_queue[i] = -1;
     }
     
-    // because reasons
-    // // the last process wasn't getting displayed, so I made an extra process that runs at the end...
-    // int maximum = 0;
-    // int maximum2 =0;
-    // for (int i = 0; i < N-1; i++) {
-    //     if (ready_times[i] > maximum){
-    //         maximum = ready_times[i];
-    //     }
-    // }
-    // for (int i = 0; i < N-1; i++) {
-    //     if (execution_times[i] > maximum){
-    //         maximum2 = ready_times[i];
-    //     }
-    // }
-    // strcpy(names[N-1], "");
-    // ready_times[N-1] = maximum+10;
-    // execution_times[N-1] = maximum2+10;
-    // remaining_times[N-1] = maximum2+10;
-    // elapsed_steps[N-1] = 0;
-    // stats[N-1] = UNAVAILABLE;
-    // PIDs[N-1] = -42;
 
-    // ------------------
+    // --------------------------------
     // Sort Ready Times
-    // ------------------
+    // --------------------------------
     int sorted_ids[MAXN];
-    id_sort(ready_times, sorted_ids, N);
+    // id_sort(ready_times, sorted_ids, N);
+    for (int i = 0; i < N; i++) {
+        sorted_ids[i] = ready_times[i];
+    }
     if (DEBUG) printf("Sorted ids \n");
 
     // get next job to arrive
@@ -119,9 +95,9 @@ int main(int argc, char *argv[]) {
     int next_arrival; 
     next_arrival = sorted_ids[arrival_itr];
 
-    // ------------------
+    // --------------------------------
     // Parameters
-    // ------------------
+    // --------------------------------
     int prev_id; // previous selected id
     int id = 0; // current selected id
     int qsize = 0; // size of ready_queue (linked list)
@@ -141,81 +117,93 @@ int main(int argc, char *argv[]) {
     current_step = 0;
     int finished_jobs = 0;
 
-    int ready_queue[MAXN];
 
-    // for (int i = 0; i < N; i++) {
-    //     printf("%s %d %d\n", names[i], ready_times[i], execution_times[i]);
-    // }
+    if (DEBUG) {
+        for (int i = 0; i < N; i++) {
+            printf("%s %d %d\n", names[i], ready_times[i], execution_times[i]);
+        }
+    }
 
     while (finished_jobs < N) {
-        // ------------------
+        // --------------------------------
         // Update Ready Queue
-        // ------------------
+        // --------------------------------
         // Check if next job arrived, and if so, update the ready queue
-        if (DEBUG) printf("___________ \n");
+        // if (DEBUG) printf("___________ \n");
         if (DEBUG) printf("adding jobs\n");
 
-        // for (int i = 0; i < N; i++) {
-        //     if ((ready_times[i] <= current_step) && (stats[i] == UNAVAILABLE)) {
-        //         printf("Add job: %id\n", id);
-        //         append_value(&tail, next_arrival);
-        //     }
-        // }
-
-        // -----------
+        // -------------------------
         // Add jobs
-        // -----------
-
-        qsize = add_process(ready_times, current_step, ready_queue, N);
+        // -------------------------
 
 
-        // tmp1 = ready_times[next_arrival];
-        // while ((arrival_itr < N) && (tmp1 <= current_step)) {
-        //     // add job to ready_queue
-        //     if (DEBUG) printf("Added: %d\n", sorted_ids[arrival_itr]);
-        //     append_value(&tail, next_arrival);
-        //     qsize += 1;
-        //     // get next arrival
-        //     arrival_itr += 1;
-        //     next_arrival = sorted_ids[arrival_itr];
-        // }
+        if (USE_LINKED_LIST) {
+            int tmp1 = ready_times[next_arrival];
+            while ((arrival_itr < N) && (tmp1 <= current_step)) {
+                // add job to ready_queue
+                if (DEBUG) printf("Added: %d\n", sorted_ids[arrival_itr]);
+                append_value(&tail, next_arrival);
+                qsize += 1;
+                // get next arrival
+                arrival_itr += 1;
+                next_arrival = sorted_ids[arrival_itr];
+            }
+        }
+        else {
+            qsize = add_process(ready_times, current_step, ready_queue, N);
+        }
 
         if (DEBUG) printf("selecting jobs \n");
 
         if (qsize > 0) {
-            // ------------------
-            // Select Job
-            // ------------------
-            prev_id = id;
-            // id = select_job(&head, &tail, policy, current_step, remaining_times, running);
 
-            id = select_process(prev_id, ready_queue, remaining_times, elapsed_steps, current_step, policy, qsize, N, running);
+            // --------------------------------
+            // Select Job
+            // --------------------------------
+            prev_id = id;
+            
+            if (USE_LINKED_LIST) {
+
+                id = select_job(&head, &tail, policy, current_step, remaining_times, running);
+            }
+            else {
+                id = select_process(prev_id, ready_queue, remaining_times, elapsed_steps, current_step, policy, qsize, N, running);
+            }
+
+
 
 // int select_process(int prev_id, int *ready_queue, int *remaining_times, \
 //     int *elapsed_steps, int current_step, enum policy_type policy, int qsize, int N, bool running){
 
             // printf("id: %d\n", id);
 
-            if (DEBUG) printf("running jobs \n");
-            // ------------------
+            // --------------------------------
             // Run Job
-            // ------------------
+            // --------------------------------
+            if (DEBUG) printf("running jobs \n");
+
             PIDs[id] = process_control(id, &stats[id], PIDs[id], PIDs[prev_id], \
-                execution_times[id], running);
+                execution_times[id], running, names);
             running = true;
             time_unit();
             if (DEBUG) printf("PIDs[%d]: %d\n", id, PIDs[id]);
 
             if (DEBUG) printf("update params \n");
-            // ------------------
+            // --------------------------------
             // Update Parameters
-            // ------------------
+            // --------------------------------
             elapsed_steps[id] = update_status(id, PIDs[id], &stats[id]);
             remaining_times[id] = remaining_times[id] - elapsed_steps[id];
             // update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
+            
+            if (USE_LINKED_LIST) {
 
-            // finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
-            finished_jobs += cleaned_queue(ready_queue, stats, N);
+                finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
+            }
+            else {
+                finished_jobs += cleaned_queue(ready_queue, stats, N);
+            }
+
             current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
 
             if (DEBUG) printf("%d / %d\n", finished_jobs, N);
@@ -228,7 +216,7 @@ int main(int argc, char *argv[]) {
         if (DEBUG) printf("sync?\n");
         if (DEBUG) printf("___________ \n");
         // ------------------
-        // Sync Steps
+        // Sync Steps (originally using pipes)
         // ------------------
         // if (current_process_step > current_step) {
         //     // sync main() steps with process steps
@@ -251,8 +239,9 @@ int main(int argc, char *argv[]) {
 
 
 
-
-
+// ----------------------------------------------------------------------
+// Old notes and code
+// ----------------------------------------------------------------------
 
     // FIFO: traverse sorted ready_times[N], 
     // in a tie (arrival), lowest index goes first, no preemption
@@ -406,3 +395,39 @@ int main(int argc, char *argv[]) {
 // - process_control [done?]
 // - update_status [done?]
 // - cleanlist() --> total_remaining_procs--, qsize-- [done]
+
+// - optimize PSJF, SJF (4 ready queues instead of 1)
+
+
+// - dmesg syscall
+// - get_time() syscall (in proc_step)
+
+    // because reasons
+    // // the last process wasn't getting displayed, so I made an extra process that runs at the end...
+    // int maximum = 0;
+    // int maximum2 =0;
+    // for (int i = 0; i < N-1; i++) {
+    //     if (ready_times[i] > maximum){
+    //         maximum = ready_times[i];
+    //     }
+    // }
+    // for (int i = 0; i < N-1; i++) {
+    //     if (execution_times[i] > maximum){
+    //         maximum2 = ready_times[i];
+    //     }
+    // }
+    // strcpy(names[N-1], "");
+    // ready_times[N-1] = maximum+10;
+    // execution_times[N-1] = maximum2+10;
+    // remaining_times[N-1] = maximum2+10;
+    // elapsed_steps[N-1] = 0;
+    // stats[N-1] = UNAVAILABLE;
+    // PIDs[N-1] = -42;
+
+        // for (int i = 0; i < N; i++) {
+        //     if ((ready_times[i] <= current_step) && (stats[i] == UNAVAILABLE)) {
+        //         printf("Add job: %id\n", id);
+        //         append_value(&tail, next_arrival);
+        //     }
+        // }
+
