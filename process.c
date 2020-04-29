@@ -71,7 +71,7 @@ pid start_process(int id, jobstat *stat, int exec_time, char names[MAXN][NAMESIZ
         sched_setscheduler(PID, SCHED_OTHER, &param);
 
         #ifdef LINUX
-        syscall(436,x);
+        syscall(436,exec_time);
         #else
         // Run process
         for (int i = 0; i < exec_time; i++) {
