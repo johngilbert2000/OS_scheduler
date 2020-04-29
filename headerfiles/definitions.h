@@ -12,12 +12,15 @@
 #define LOW_PRIORITY_NICE 10
 #define HIGH_PRIORITY_NICE -10
 
+#define MAXN 20
+
 // typedef unsigned int uint;
 typedef int maybe_int;
 
 typedef int pid;
 
 enum policy_type {FIFO, RR, SJF, PSJF};
+
 
 struct linked {
     int val;

@@ -13,7 +13,6 @@
 #include "headerfiles/definitions.h"
 #include "headerfiles/process.h"
 
-#define MAXN 50
 
 // - optimize PSJF, SJF (4 ready queues instead of 1)
 
