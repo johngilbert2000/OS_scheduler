@@ -7,35 +7,60 @@
 #include "headerfiles/linkedlist.h"
 #include "headerfiles/definitions.h"
 
+int getmax(int arr[], int N) {
+    // returns max value of arr
+    int maxval;
+    maxval = arr[0];
+    for (int i = 0; i < N; i++) {
+        if (arr[i] > maxval) {
+            maxval = arr[i];
+        }
+    }
+    return maxval;
+}
+
+int get_pos_min(int arr[], int N, int qsize) {
+    // returns minimum positive value of arr
+    int minval;
+    // minval = getmax(arr, N);
+    minval = qsize; // initialize to largest value
+    for (int i = 0; i < N; i++) {
+        if (arr[i] > 0) {
+            if (arr[i] < minval) minval = arr[i];
+        }
+    }
+    return minval;
+}
 
 
 
-int add_process(int ready_times[], int current_step, int **ready_or_not, int N) {
+
+
+int add_process(int ready_times[], int current_step, int *ready_queue, int N) {
     int qsize = 0;
     for (int i = 0; i < N; i++) {
         if (ready_times[i] <= current_step) {
-            *ready_or_not[i] = true;
+            ready_queue[i] = qsize;
             qsize += 1;
         }
         else {
-            *ready_or_not[i] = false;
+            ready_queue[i] = -1;
         }
     }
     return qsize;
 }
 
-int cleaned_queue(int *ready_queue[], jobstat *stats[], int N) {
+int cleaned_queue(int ready_queue[], jobstat stats[], int N) {
     for (int i = 0; i < N; i ++) {
-        if (*stats[i] == FINISHED) {
-            *ready_queue[i] = -2;
+        if (stats[i] == FINISHED) {
+            ready_queue[i] = -2;
         }
     }
-
     return 0;
 }
 
 
-int select_by_FIFO(bool ready_queue[], int N, int qsize) {
+int select_by_FIFO(int ready_queue[], int N, int qsize) {
     int minval;
     minval = get_pos_min(ready_queue, N, qsize);
 
@@ -65,37 +90,12 @@ int select_by_FIFO(bool ready_queue[], int N, int qsize) {
 
 //     return 0;
 // }
-int getmax(int arr[], int N) {
-    // returns max value of arr
-    int maxval;
-    maxval = arr[0];
-    for (int i = 0; i < N; i++) {
-        if (arr[i] > maxval) {
-            maxval = arr[i];
-        }
-    }
-    return maxval;
-}
 
-int get_pos_min(int arr[], int N, int qsize) {
-    // returns minimum positive value of arr
-    int minval;
-    // minval = getmax(arr, N);
-    minval = qsize; // initialize to largest value
-    for (int i = 0; i < N; i++) {
-        if (arr[i] > 0) {
-            if (arr[i] < minval) minval = arr[i];
-        }
-    }
-    return minval;
-}
+int select_process(int prev_id, int ready_queue[], int remaining_times[], \
+    int elapsed_steps[], int current_step, enum policy_type policy, int qsize, int N, bool running){
 
-
-
-int select_process(int prev_id, int *ready_queue, int *remaining_times, \
-    int *elapsed_steps, int current_step, enum policy_type policy, int qsize, int N, bool running){
-
-    int id, minval; //maxval; 
+    int id; // minval; //maxval; 
+    id = 0; //initialized to silence warnings
     if (policy == FIFO) {
         id = select_by_FIFO(ready_queue, N, qsize);
     }
@@ -140,6 +140,7 @@ int select_process(int prev_id, int *ready_queue, int *remaining_times, \
     else {
         // id = select_by_PSJF(ready_or_not, remaining_times, current_step, N);
         int minval;
+        id = 0;
         minval = get_pos_min(remaining_times, N, qsize);
         for (int i = 0; i < N; i++) {
 

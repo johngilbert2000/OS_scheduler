@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
         // Add jobs
         // -----------
 
-        add_process(ready_times, current_step, &ready_queue, &qsize);
+        qsize = add_process(ready_times, current_step, ready_queue, N);
 
 
         // tmp1 = ready_times[next_arrival];
@@ -217,7 +217,7 @@ int main(int argc, char *argv[]) {
             // update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
 
             // finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
-            finished_jobs += cleaned_queue(&ready_queue, &stats, N);
+            finished_jobs += cleaned_queue(ready_queue, stats, N);
             current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
 
             if (DEBUG) printf("%d / %d\n", finished_jobs, N);
