@@ -21,23 +21,23 @@
 // - get_time() syscall (in proc_step)
 
 
-maybe_int clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
-    maybe_int num_finished;
-    maybe_int id;
-    num_finished = 0;
-    if (DEBUG) { printf("Cleaning the queue \n"); }
+// maybe_int clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
+//     maybe_int num_finished;
+//     maybe_int id;
+//     num_finished = 0;
+//     if (DEBUG) { printf("Cleaning the queue \n"); }
 
-    id = (*head)->val;
-    while ((qsize > 0) && (stats[id] == FINISHED)) {
-        *running = false;
-        remove_head(head);
-        *qsize = *qsize - 1;
-        *total_remaining = *total_remaining - 1;
-        num_finished += 1;
-        if (qsize > 0) { id = (*head)->val; }
-    }
-    return num_finished;
-}
+//     id = (*head)->val;
+//     while ((qsize > 0) && (stats[id] == FINISHED)) {
+//         *running = false;
+//         remove_head(head);
+//         *qsize = *qsize - 1;
+//         *total_remaining = *total_remaining - 1;
+//         num_finished += 1;
+//         if (qsize > 0) { id = (*head)->val; }
+//     }
+//     return num_finished;
+// }
 
 int main(int argc, char *argv[]) {
 
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
     current_step = 0;
     maybe_int finished_jobs = 0;
 
-    bool ready_or_not[MAXN];
+    int ready_queue[MAXN];
 
     // for (int i = 0; i < N; i++) {
     //     printf("%s %d %d\n", names[i], ready_times[i], execution_times[i]);
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
         // Add jobs
         // -----------
 
-        add_process(ready_times, current_step, &ready_or_not, &qsize);
+        add_process(ready_times, current_step, &ready_queue, &qsize);
 
 
         // tmp1 = ready_times[next_arrival];
@@ -191,7 +191,10 @@ int main(int argc, char *argv[]) {
             prev_id = id;
             // id = select_job(&head, &tail, policy, current_step, remaining_times, running);
 
-            id = select_process(ready_or_not, remaining_times, current_step, policy, running, N);
+            id = select_process(prev_id, ready_queue, remaining_times, elapsed_steps, current_step, policy, qsize, N, running);
+
+// int select_process(int prev_id, int *ready_queue, int *remaining_times, \
+//     int *elapsed_steps, int current_step, enum policy_type policy, int qsize, int N, bool running){
 
             // printf("id: %d\n", id);
 
@@ -213,10 +216,12 @@ int main(int argc, char *argv[]) {
             remaining_times[id] = remaining_times[id] - elapsed_steps[id];
             // update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
 
-            finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
+            // finished_jobs += clean_list(&head, &qsize, &total_remaining, stats, &running);
+            finished_jobs += cleaned_queue(&ready_queue, &stats, N);
             current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
 
             if (DEBUG) printf("%d / %d\n", finished_jobs, N);
+            elapsed_steps[id] += 1;
         }
         current_step += 1;
 

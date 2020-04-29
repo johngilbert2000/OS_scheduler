@@ -24,6 +24,16 @@ int add_process(int ready_times[], int current_step, int **ready_or_not, int N) 
     return qsize;
 }
 
+int cleaned_queue(int *ready_queue[], jobstat *stats[], int N) {
+    for (int i = 0; i < N; i ++) {
+        if (*stats[i] == FINISHED) {
+            *ready_queue[i] = -2;
+        }
+    }
+
+    return 0;
+}
+
 
 int select_by_FIFO(bool ready_queue[], int N, int qsize) {
     int minval;
@@ -82,7 +92,9 @@ int get_pos_min(int arr[], int N, int qsize) {
 
 
 
-int select_process(int prev_id, bool *ready_queue, int *remaining_times, int *elapsed_steps, int current_step, enum policy_type policy, int qsize, int N, bool running){
+int select_process(int prev_id, int *ready_queue, int *remaining_times, \
+    int *elapsed_steps, int current_step, enum policy_type policy, int qsize, int N, bool running){
+
     int id, minval; //maxval; 
     if (policy == FIFO) {
         id = select_by_FIFO(ready_queue, N, qsize);
