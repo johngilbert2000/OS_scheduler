@@ -5,7 +5,7 @@
 
 enum policy_type get_policy() {
 
-    char S[4];
+    char S[NAMESIZE];
     enum policy_type policy;
 
     if (IO) printf("Policy: ");

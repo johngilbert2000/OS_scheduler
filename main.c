@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
         scanf("%u", &execution_times[i]);
 
         remaining_times[i] = execution_times[i];
-        PIDs[i] = -8; // arbitrarily initialize PID
+        PIDs[i] = 69; // arbitrarily initialize PID
         elapsed_steps[i] = 0;
         stats[i] = UNAVAILABLE;
         ready_queue[i] = -1;

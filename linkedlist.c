@@ -210,7 +210,7 @@ node *insert_head(node **head, node *new_node){
 void remove_node(node *old_node){
     // Removes node from linked list
     old_node->next = NULL;
-    // free(old_node);
+    free(old_node);
 }
 
 // node *get_tail(node *any_node){

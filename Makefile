@@ -1,5 +1,6 @@
 CC=gcc
-CFLAGS=-g -Wall -Wuninitialized
+CFLAGS=-g -fsanitize=address 
+# -Wall -Wuninitialized
 
 all: schedProgram
 
