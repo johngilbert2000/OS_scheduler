@@ -43,8 +43,8 @@ void time_unit(){
   }
 #endif
 
-pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2]) {
-    // Create new process with fork(); (used in process_control)
+pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time) {
+    // Create new process with fork(); (used in process_control)pipefd[2]
  
     // stat: the status of the selected job
     // exec_time: execution time of selected job
@@ -54,8 +54,8 @@ pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2
     localstatus = *stat;
     long double start_time, stop_time;
 
-    maybe_int elapsed_local;
-    elapsed_local = 0; // internal time_unit clock
+    // maybe_int elapsed_local;
+    // elapsed_local = 0; // internal time_unit clock
 
     PID = fork();
     if (PID == 0) { // CHILD PROCESS
@@ -72,14 +72,15 @@ pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2
         // Run process
         for (int i = 0; i < exec_time; i++) {
             time_unit();
-            elapsed_local += 1;
-            write(pipefd[1], &elapsed_local, sizeof(elapsed_local));
+            // elapsed_local += 1;
+            // write(pipefd[1], &elapsed_local, sizeof(elapsed_local));
+            // write(pipe_write, &elapsed_local, sizeof(elapsed_local));
         }
 
         // Pass finished status into pipe and exit
         // localstatus = FINISHED;
         // write(pipefd[1], &localstatus, sizeof(localstatus));
-        write(pipefd[1], &elapsed_local, sizeof(elapsed_local));
+        // write(pipe_write, &elapsed_local, sizeof(elapsed_local));
 
         stop_time = get_time();
 
@@ -103,10 +104,13 @@ pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2
 }
 
 pid process_control(maybe_int id, jobstat *stat, pid PID, \
-  pid prevPID, maybe_int exec_time, int pipefd[2], bool running) {
+  pid prevPID, maybe_int exec_time, bool running) {
     // Creates new process if stat indicates job has not started
     // Otherwise, switches to process with given PID 
-    // from the previous process (prevPID)
+    // from the previous process (prevPID)pipefd[2]
+    
+    // Ensure pipe file descriptor is set to nonblocking
+    // fcntl(pipe_write, F_SETFL, fcntl(pipe_write, F_GETFL) | O_NONBLOCK);
 
     // stat: the status of the selected job
     // PID: PID of selected job, if it exists
@@ -124,7 +128,7 @@ pid process_control(maybe_int id, jobstat *stat, pid PID, \
       kill(PID, SIGCONT);
     }
     else if (*stat == UNAVAILABLE) {
-      PID = start_process(id, stat, exec_time, pipefd);
+      PID = start_process(id, stat, exec_time);
     }
     else {
       if (DEBUG) printf("<<<< PROCESS CONTROL CONFUSION >>>>");
@@ -133,20 +137,23 @@ pid process_control(maybe_int id, jobstat *stat, pid PID, \
    return PID;
 }
 
-maybe_int update_status(int id, pid PID, jobstat *stat, int *fd) {
+maybe_int update_status(int id, pid PID, jobstat *stat) {
     maybe_int process_step; // number of elapsed time_units for given process
     int waitstatus;
     waitstatus = 1; // initialized to silence warnings
     process_step = 0;
+    // int pipe_read;
 
     // Ensure pipe file descriptor is set to nonblocking
-    fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
-    fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+    // fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+    // fcntl(fd[1], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
+
+    // fcntl(pipe_read, F_SETFL, fcntl(pipe_read, F_GETFL) | O_NONBLOCK);
 
     if (*stat == STARTED) waitpid(PID, &waitstatus, WNOHANG);
 
     if ((waitstatus == 0) && (*stat != FINISHED)) {
-        // read(fd[0], &process_step, sizeof(process_step));
+        // read(pipe_read, &process_step, sizeof(process_step));
         // if (DEBUG) printf("Process %d finished\n", PID);
         *stat = FINISHED;
     } 

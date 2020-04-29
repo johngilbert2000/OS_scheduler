@@ -13,6 +13,7 @@
 #include "headerfiles/definitions.h"
 #include "headerfiles/process.h"
 
+#define MAXN 50
 
 // - optimize PSJF, SJF (4 ready queues instead of 1)
 
@@ -61,18 +62,18 @@ int main(int argc, char *argv[]) {
     // Input Stuff
     // --------------
 
-    char names[N][32];
-    maybe_int ready_times[N];
-    maybe_int execution_times[N];
-    maybe_int remaining_times[N];
+    char names[MAXN][32];
+    maybe_int ready_times[MAXN];
+    maybe_int execution_times[MAXN];
+    maybe_int remaining_times[MAXN];
     
-    pid PIDs[N];
+    pid PIDs[MAXN];
     maybe_int current_step, current_process_step, total_steps;
-    maybe_int elapsed_steps[N]; // elapsed time_units() of each individual process   
+    maybe_int elapsed_steps[MAXN]; // elapsed time_units() of each individual process   
 
-    jobstat stats[N];
+    jobstat stats[MAXN];
     // N R T
-    for (int i = 0; i < N-1; i++) { // because reasons
+    for (int i = 0; i < N; i++) { // because reasons
         if (IO) printf("N R T: ");
         scanf("%s", names[i]); 
         scanf("%u", &ready_times[i]);
@@ -86,30 +87,30 @@ int main(int argc, char *argv[]) {
     
     // because reasons
     // the last process wasn't getting displayed, so I made an extra process that runs at the end...
-    int maximum = 0;
-    int maximum2 =0;
-    for (int i = 0; i < N-1; i++) {
-        if (ready_times[i] > maximum){
-            maximum = ready_times[i];
-        }
-    }
-    for (int i = 0; i < N-1; i++) {
-        if (execution_times[i] > maximum){
-            maximum2 = ready_times[i];
-        }
-    }
-    strcpy(names[N-1], "");
-    ready_times[N-1] = maximum+10;
-    execution_times[N-1] = maximum2+10;
-    remaining_times[N-1] = maximum2+10;
-    elapsed_steps[N-1] = 0;
-    stats[N-1] = UNAVAILABLE;
-    PIDs[N-1] = -42;
+    // int maximum = 0;
+    // int maximum2 =0;
+    // for (int i = 0; i < N-1; i++) {
+    //     if (ready_times[i] > maximum){
+    //         maximum = ready_times[i];
+    //     }
+    // }
+    // for (int i = 0; i < N-1; i++) {
+    //     if (execution_times[i] > maximum){
+    //         maximum2 = ready_times[i];
+    //     }
+    // }
+    // strcpy(names[N-1], "");
+    // ready_times[N-1] = maximum+10;
+    // execution_times[N-1] = maximum2+10;
+    // remaining_times[N-1] = maximum2+10;
+    // elapsed_steps[N-1] = 0;
+    // stats[N-1] = UNAVAILABLE;
+    // PIDs[N-1] = -42;
 
     // ------------------
     // Sort Ready Times
     // ------------------
-    maybe_int sorted_ids[N];
+    maybe_int sorted_ids[MAXN];
     id_sort(ready_times, sorted_ids, N);
     if (DEBUG) printf("Sorted ids \n");
 
@@ -120,7 +121,7 @@ int main(int argc, char *argv[]) {
     maybe_int id = 0; // current selected id
     int qsize = 0; // size of ready_queue (linked list)
 
-    int pipe_fds[2][N];
+    // int pipe_fds[2][MAXN];
 
     bool running;
 
@@ -196,7 +197,7 @@ int main(int argc, char *argv[]) {
             // Run Job
             // ------------------
             PIDs[id] = process_control(id, &stats[id], PIDs[id], PIDs[prev_id], \
-                execution_times[id], pipe_fds[id], running);
+                execution_times[id], running);
             running = true;
             time_unit();
             if (DEBUG) printf("PIDs[%d]: %d\n", id, PIDs[id]);
@@ -205,7 +206,7 @@ int main(int argc, char *argv[]) {
             // ------------------
             // Update Parameters
             // ------------------
-            elapsed_steps[id] = update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
+            elapsed_steps[id] = update_status(id, PIDs[id], &stats[id]);
             remaining_times[id] = remaining_times[id] - elapsed_steps[id];
             // update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
 
@@ -229,9 +230,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (IO) printf("_____________\n");
-    for (int i = 0; i < N; i++) { // because reasons
-        // printf("%s", names[i]);
-        // printf(" %d\n", PIDs[i]);
+    for (int i = 0; i < N-1; i++) { // because reasons
+        printf("%s", names[i]);
+        printf(" %d\n", PIDs[i]);
     }
     if (IO) printf("_____________\n");
 
