@@ -229,9 +229,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (IO) printf("_____________\n");
-    for (int i = 0; i < N-1; i++) { // because reasons
-        printf("%s", names[i]);
-        printf(" %d\n", PIDs[i]);
+    for (int i = 0; i < N; i++) { // because reasons
+        // printf("%s", names[i]);
+        // printf(" %d\n", PIDs[i]);
     }
     if (IO) printf("_____________\n");
 
