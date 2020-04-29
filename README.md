@@ -59,10 +59,10 @@ This will compile and run for all input text files in the `input/` folder, and p
 make
 
 ./schedProgram < FIFO_1.txt > FIFO_1_stdout.txt
-dmesg | grep OS_scheduler > FIFO_1_dmesg.txt
+dmesg | grep schedProgram > FIFO_1_dmesg.txt
 
 ./schedProgram < RR_1.txt > RR_1_stdout.txt
-dmesg | grep OS_scheduler > RR_1_dmesg.txt
+dmesg | grep schedProgram > RR_1_dmesg.txt
 
 ...
 ```

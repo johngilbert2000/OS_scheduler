@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
                 finished_jobs += cleaned_queue(ready_queue, stats, N);
             }
 
-            // current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
+            current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
 
             if (DEBUG) printf("%d / %d\n", finished_jobs, N);
             elapsed_steps[id] += 1;
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
         if (PIDs[i] < 0) {
             PIDs[i] = process_control(i, &stats[i], PIDs[i], PIDs[prev_id], \
                 execution_times[i], running, names);
-            sleep(5);
+            sleep(10);
             elapsed_steps[i] = update_status(i, PIDs[i], &stats[i]); 
             i--;
         }
