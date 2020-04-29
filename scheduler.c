@@ -93,6 +93,7 @@ int select_by_FIFO(int ready_queue[], int N, int qsize) {
 
 int select_process(int prev_id, int ready_queue[], int remaining_times[], \
     int elapsed_steps[], int current_step, enum policy_type policy, int qsize, int N, bool running){
+        // ARRAYS
 
     int id; // minval; //maxval; 
     id = 0; //initialized to silence warnings
@@ -164,6 +165,7 @@ int select_process(int prev_id, int ready_queue[], int remaining_times[], \
 // enum policy_type {FIFO, RR, SJF, PSJF};
 
 int select_job(node **head, node **tail, enum policy_type policy, int elapsed_time, int remain_times[], bool running){
+    // LINKED LISTS
     // Selects job based on policy;
 
     // head: the head node of the ready queue (linked list)

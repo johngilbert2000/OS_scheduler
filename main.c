@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
             // Update Parameters
             // --------------------------------
             elapsed_steps[id] = update_status(id, PIDs[id], &stats[id]);
-            remaining_times[id] = remaining_times[id] - elapsed_steps[id];
+            remaining_times[id] = execution_times[id] - elapsed_steps[id];
             // update_status(id, PIDs[id], &stats[id], pipe_fds[id]);
             
             if (USE_LINKED_LIST) {
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
                 finished_jobs += cleaned_queue(ready_queue, stats, N);
             }
 
-            current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
+            // current_process_step = reduce(add, elapsed_steps, N); // elapsed process steps
 
             if (DEBUG) printf("%d / %d\n", finished_jobs, N);
             elapsed_steps[id] += 1;
@@ -231,7 +231,15 @@ int main(int argc, char *argv[]) {
     }
     if (IO) printf("_____________\n");
 
-    // sleep(1);
+    for (int i = 0; i < N; i++) {
+        if (PIDs[i] < 0) {
+            PIDs[i] = process_control(i, &stats[i], PIDs[i], PIDs[prev_id], \
+                execution_times[i], running, names);
+            sleep(5);
+            elapsed_steps[i] = update_status(i, PIDs[i], &stats[i]); 
+            i--;
+        }
+    }
 
     return 0;
 }
