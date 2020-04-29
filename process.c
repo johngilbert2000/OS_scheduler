@@ -13,6 +13,8 @@
 #include <signal.h> // for kill()
 #include <unistd.h> // for fork()
 
+#define LINUX
+
 void disp_main(pid id, jobstat x){
   printf("[ P%d ]: %d  (main - process %d)\n", id, x, getpid());
 }
