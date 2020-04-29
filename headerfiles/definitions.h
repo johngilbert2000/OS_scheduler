@@ -18,6 +18,8 @@
 #define MAXN 20
 #define NAMESIZE 32
 
+#include <sys/wait.h>
+
 // typedef unsigned int uint;
 
 typedef int pid;
