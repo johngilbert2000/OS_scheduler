@@ -142,12 +142,8 @@ int main(int argc, char *argv[]) {
     total_steps = reduce(add, execution_times, N); // number of time_units() to complete in total
     current_step = 0;
     maybe_int finished_jobs = 0;
-    int tmp1, tmp2, tmp3, tmp4;
-    tmp1 = 0;
-    tmp2 = 0;
-    tmp3 = 0;
-    tmp4 = 0;
 
+    bool ready_or_not[MAXN];
 
     // for (int i = 0; i < N; i++) {
     //     printf("%s %d %d\n", names[i], ready_times[i], execution_times[i]);
@@ -171,16 +167,20 @@ int main(int argc, char *argv[]) {
         // -----------
         // Add jobs
         // -----------
-        tmp1 = ready_times[next_arrival];
-        while ((arrival_itr < N) && (tmp1 <= current_step)) {
-            // add job to ready_queue
-            if (DEBUG) printf("Added: %d\n", sorted_ids[arrival_itr]);
-            append_value(&tail, next_arrival);
-            qsize += 1;
-            // get next arrival
-            arrival_itr += 1;
-            next_arrival = sorted_ids[arrival_itr];
-        }
+
+        add_process(ready_times, current_step, &ready_or_not, &qsize);
+
+
+        // tmp1 = ready_times[next_arrival];
+        // while ((arrival_itr < N) && (tmp1 <= current_step)) {
+        //     // add job to ready_queue
+        //     if (DEBUG) printf("Added: %d\n", sorted_ids[arrival_itr]);
+        //     append_value(&tail, next_arrival);
+        //     qsize += 1;
+        //     // get next arrival
+        //     arrival_itr += 1;
+        //     next_arrival = sorted_ids[arrival_itr];
+        // }
 
         if (DEBUG) printf("selecting jobs \n");
 
@@ -189,7 +189,10 @@ int main(int argc, char *argv[]) {
             // Select Job
             // ------------------
             prev_id = id;
-            id = select_job(&head, &tail, policy, current_step, remaining_times, running);
+            // id = select_job(&head, &tail, policy, current_step, remaining_times, running);
+
+            id = select_process(ready_or_not, remaining_times, current_step, policy, running, N);
+
             // printf("id: %d\n", id);
 
             if (DEBUG) printf("running jobs \n");
