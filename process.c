@@ -127,7 +127,7 @@ pid process_control(uint id, jobstat *stat, pid PID, \
       PID = start_process(id, stat, exec_time, pipefd);
     }
     else {
-      printf("<<<< PROCESS CONTROL CONFUSION >>>>");
+      if (DEBUG) printf("<<<< PROCESS CONTROL CONFUSION >>>>");
     }
     
    return PID;
@@ -147,6 +147,7 @@ uint update_status(int id, pid PID, jobstat *stat, int *fd) {
 
     if ((waitstatus == 0) && (*stat != FINISHED)) {
         // read(fd[0], &process_step, sizeof(process_step));
+        // if (DEBUG) printf("Process %d finished\n", PID);
         *stat = FINISHED;
     } 
     if (DEBUG) disp_main(id, *stat);

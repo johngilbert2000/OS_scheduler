@@ -228,12 +228,12 @@ int main(int argc, char *argv[]) {
         // }
     }
 
-    // printf("_____________\n");
+    if (IO) printf("_____________\n");
     for (int i = 0; i < N-1; i++) { // because reasons
         printf("%s", names[i]);
         printf(" %d\n", PIDs[i]);
     }
-    // printf("_____________\n");
+    if (IO) printf("_____________\n");
 
     // sleep(1);
 

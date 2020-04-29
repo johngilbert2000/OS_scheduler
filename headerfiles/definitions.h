@@ -2,7 +2,7 @@
 #define DEFINITIONS_H
 
 #define DEBUG 0
-#define IO 1 // Turn this to 1 to display prompts for the user (running without input files)
+#define IO 0 // Turn this to 1 to display prompts for the user (running without input files)
 #define DIO 0 // another debug io
 #define NOT_LINUX // define this if not using linux
 
