@@ -163,7 +163,7 @@ int select_process(int prev_id, int ready_queue[], int remaining_times[], \
 // typedef unsigned int uint;
 // enum policy_type {FIFO, RR, SJF, PSJF};
 
-maybe_int select_job(node **head, node **tail, enum policy_type policy, maybe_int elapsed_time, maybe_int remain_times[], bool running){
+int select_job(node **head, node **tail, enum policy_type policy, int elapsed_time, int remain_times[], bool running){
     // Selects job based on policy;
 
     // head: the head node of the ready queue (linked list)
@@ -192,8 +192,8 @@ maybe_int select_job(node **head, node **tail, enum policy_type policy, maybe_in
             node *min_node;
             
             tmp = *head;
-            // maybe_int id;
-            maybe_int min_time;
+            // int id;
+            int min_time;
             // id = tmp->val;
             min_time = remain_times[tmp->val];
 
@@ -217,7 +217,7 @@ maybe_int select_job(node **head, node **tail, enum policy_type policy, maybe_in
         node *min_node;
         
         tmp = *head;
-        maybe_int min_time;
+        int min_time;
         min_time = remain_times[tmp->val];
 
         while (tmp != NULL){

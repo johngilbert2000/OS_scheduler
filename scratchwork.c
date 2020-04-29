@@ -60,10 +60,10 @@ typedef int pid_t;
 
 // struct job_data {
 //   pid PID;
-//   maybe_int id;
+//   int id;
 //   char *name;
-//   maybe_int ready_time;
-//   maybe_int execution_time;
+//   int ready_time;
+//   int execution_time;
 //   enum job_status;
 // };
 
@@ -142,7 +142,7 @@ void init_priority(pid PID) {
   }
 #endif
 
-pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2]) {
+pid start_process(int id, jobstat *stat, int exec_time, int pipefd[2]) {
     // Create new process with fork(); (used in process_control)
  
     // stat: the status of the selected job
@@ -196,7 +196,7 @@ pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time, int pipefd[2
     return PID;
 }
 
-pid process_control(maybe_int id, jobstat *stat, pid PID, pid prevPID, maybe_int exec_time, int pipefd[2], bool running) {
+pid process_control(int id, jobstat *stat, pid PID, pid prevPID, int exec_time, int pipefd[2], bool running) {
     // Creates new process if stat indicates job has not started
     // Otherwise, switches to process with given PID 
     // from the previous process (prevPID)

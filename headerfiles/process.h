@@ -6,8 +6,8 @@
 
 extern long long get_time();
 extern void time_unit();
-extern pid start_process(maybe_int id, jobstat *stat, maybe_int exec_time);
-extern pid process_control(maybe_int id, jobstat *stat, pid PID, pid prevPID, maybe_int exec_time, bool running);
+extern pid start_process(int id, jobstat *stat, int exec_time);
+extern pid process_control(int id, jobstat *stat, pid PID, pid prevPID, int exec_time, bool running);
 extern pid update_status(int id, pid PID, jobstat *stat);
 
 #endif

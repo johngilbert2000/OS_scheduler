@@ -15,7 +15,6 @@
 #define MAXN 20
 
 // typedef unsigned int uint;
-typedef int maybe_int;
 
 typedef int pid;
 

@@ -11,6 +11,6 @@ extern int add_process(int ready_times[], int current_step, int ready_queue[], i
 // extern int select_process(bool *ready_or_not, int *remaining_times, int current_step, enum policy_type policy, bool running, int N);
 extern int cleaned_queue(int ready_queue[], jobstat stats[], int N);
 
-extern maybe_int select_job(node **head, node **tail, enum policy_type policy, maybe_int elapsed_time, maybe_int remain_times[], bool running);
+extern int select_job(node **head, node **tail, enum policy_type policy, int elapsed_time, int remain_times[], bool running);
 
 #endif

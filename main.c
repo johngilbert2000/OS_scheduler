@@ -13,6 +13,9 @@
 #include "headerfiles/definitions.h"
 #include "headerfiles/process.h"
 
+#define USE_LINKED_LIST 1;
+#define USE_ARRAYS 0;
+
 
 // - optimize PSJF, SJF (4 ready queues instead of 1)
 
@@ -20,23 +23,23 @@
 // - get_time() syscall (in proc_step)
 
 
-// maybe_int clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
-//     maybe_int num_finished;
-//     maybe_int id;
-//     num_finished = 0;
-//     if (DEBUG) { printf("Cleaning the queue \n"); }
+int clean_list(node **head, int *qsize, int *total_remaining, jobstat stats[], bool *running){
+    int num_finished;
+    int id;
+    num_finished = 0;
+    if (DEBUG) { printf("Cleaning the queue \n"); }
 
-//     id = (*head)->val;
-//     while ((qsize > 0) && (stats[id] == FINISHED)) {
-//         *running = false;
-//         remove_head(head);
-//         *qsize = *qsize - 1;
-//         *total_remaining = *total_remaining - 1;
-//         num_finished += 1;
-//         if (qsize > 0) { id = (*head)->val; }
-//     }
-//     return num_finished;
-// }
+    id = (*head)->val;
+    while ((qsize > 0) && (stats[id] == FINISHED)) {
+        *running = false;
+        remove_head(head);
+        *qsize = *qsize - 1;
+        *total_remaining = *total_remaining - 1;
+        num_finished += 1;
+        if (qsize > 0) { id = (*head)->val; }
+    }
+    return num_finished;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -48,11 +51,9 @@ int main(int argc, char *argv[]) {
     policy = get_policy();
 
     // N
-    maybe_int N;
+    int N;
     if (IO) printf("Number processes: ");
     scanf("%u", &N);
-
-    N += 1; // because reasons
 
     int total_remaining;
     total_remaining = N; // number of processes left to finish
@@ -62,13 +63,13 @@ int main(int argc, char *argv[]) {
     // --------------
 
     char names[MAXN][32];
-    maybe_int ready_times[MAXN];
-    maybe_int execution_times[MAXN];
-    maybe_int remaining_times[MAXN];
+    int ready_times[MAXN];
+    int execution_times[MAXN];
+    int remaining_times[MAXN];
     
     pid PIDs[MAXN];
-    maybe_int current_step, current_process_step, total_steps;
-    maybe_int elapsed_steps[MAXN]; // elapsed time_units() of each individual process   
+    int current_step, current_process_step, total_steps;
+    int elapsed_steps[MAXN]; // elapsed time_units() of each individual process   
 
     jobstat stats[MAXN];
     // N R T
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
     }
     
     // because reasons
-    // the last process wasn't getting displayed, so I made an extra process that runs at the end...
+    // // the last process wasn't getting displayed, so I made an extra process that runs at the end...
     // int maximum = 0;
     // int maximum2 =0;
     // for (int i = 0; i < N-1; i++) {
@@ -109,26 +110,24 @@ int main(int argc, char *argv[]) {
     // ------------------
     // Sort Ready Times
     // ------------------
-    maybe_int sorted_ids[MAXN];
+    int sorted_ids[MAXN];
     id_sort(ready_times, sorted_ids, N);
     if (DEBUG) printf("Sorted ids \n");
+
+    // get next job to arrive
+    int arrival_itr = 0;
+    int next_arrival; 
+    next_arrival = sorted_ids[arrival_itr];
 
     // ------------------
     // Parameters
     // ------------------
-    maybe_int prev_id; // previous selected id
-    maybe_int id = 0; // current selected id
+    int prev_id; // previous selected id
+    int id = 0; // current selected id
     int qsize = 0; // size of ready_queue (linked list)
+    // int pipe_fds[2][MAXN]; // originally for pipes
 
-    // int pipe_fds[2][MAXN];
-
-    bool running;
-
-    // get next job to arrive
-    maybe_int arrival_itr = 0;
-    maybe_int next_arrival; 
-    next_arrival = sorted_ids[arrival_itr];
-
+    bool running; // indicates if previous process is running
     node *head;
     node *tail;
     node *tmp;
@@ -140,7 +139,7 @@ int main(int argc, char *argv[]) {
     
     total_steps = reduce(add, execution_times, N); // number of time_units() to complete in total
     current_step = 0;
-    maybe_int finished_jobs = 0;
+    int finished_jobs = 0;
 
     int ready_queue[MAXN];
 
@@ -359,7 +358,7 @@ int main(int argc, char *argv[]) {
 
     // run process
         // if (running == false) {
-        //     maybe_int *rtime_ptr = NULL; 
+        //     int *rtime_ptr = NULL; 
         //     *rtime_ptr = &remaining_times[id]; 
         //     PIDs[id] = start_process(&rtime_ptr);
         // }
